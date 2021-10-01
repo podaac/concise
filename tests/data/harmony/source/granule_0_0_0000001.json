@@ -1,0 +1,49 @@
+{
+  "stac_version": "1.0.0-beta.2",
+  "stac_extensions": [],
+  "id": "51d02b24-d00e-4640-9887-05f98f6b96d8",
+  "type": "Feature",
+  "links": [],
+  "properties": {
+    "start_datetime": "2020-01-02T00:00:00.000Z",
+    "end_datetime": "2020-01-02T23:59:59.000Z"
+  },
+  "bbox": [1, 3, 1, 3],
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -179.95,
+          -89.95
+        ],
+        [
+          -179.95,
+          89.95
+        ],
+        [
+          179.95,
+          89.95
+        ],
+        [
+          179.95,
+          -89.95
+        ],
+        [
+          -179.95,
+          -89.95
+        ]
+      ]
+    ]
+  },
+  "assets": {
+    "data": {
+      "href": "file://tests/data/harmony/granules/2020_01_02_3200ff_global.nc",
+      "title": "2020_01_02_3200ff_global.nc",
+      "type": "application/x-netcdf4",
+      "roles": [
+        "data"
+      ]
+    }
+  }
+}
