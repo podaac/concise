@@ -61,7 +61,7 @@ def merge_metadata(merged_metadata, subset_metadata):
 
     for var_path, subset_attrs in subset_metadata.items():
         if var_path not in merged_metadata:
-            merged_metadata[var_path] = dict()
+            merged_metadata[var_path] = {}
 
         merged_attrs = merged_metadata[var_path]
         for attr_name, subset_attr in subset_attrs.items():
@@ -85,11 +85,11 @@ def _run_single_core(file_list):
     dict
         A dictionary containing the output from the preprocessing process
     """
-    group_list = list()
-    var_info = dict()
-    max_dims = dict()
-    var_metadata = dict()
-    group_metadata = dict()
+    group_list = []
+    var_info = {}
+    max_dims = {}
+    var_metadata = {}
+    group_metadata = {}
 
     for file in file_list:
         with nc.Dataset(file, 'r') as dataset:
@@ -146,16 +146,16 @@ def _run_multi_core(file_list, process_count):
             process.join()
 
             if process.exitcode != 0:
-                raise RuntimeError('Preprocessing failed - exit code: {}'.format(process.exitcode))
+                raise RuntimeError(f'Preprocessing failed - exit code: {process.exitcode}')
 
         results = deepcopy(results)  # ensure GC can cleanup multiprocessing
 
     # -- Merge final results --
     group_list = None
     var_info = None
-    max_dims = dict()
-    var_metadata = dict()
-    group_metadata = dict()
+    max_dims = {}
+    var_metadata = {}
+    group_metadata = {}
 
     for result in results:
         # The following data should be consistent between granules and
@@ -202,11 +202,11 @@ def _run_worker(in_queue, results):
         An array which stores the results of preprocessing from all workers
     """
     empty = True
-    group_list = list()
-    max_dims = dict()
-    var_info = dict()
-    var_metadata = dict()
-    group_metadata = dict()
+    group_list = []
+    max_dims = {}
+    var_info = {}
+    var_metadata = {}
+    group_metadata = {}
 
     while not in_queue.empty():
         try:
@@ -252,7 +252,7 @@ def process_groups(parent_group, group_list, max_dims, group_metadata, var_metad
     """
 
     if parent_group.path not in group_metadata:
-        group_metadata[parent_group.path] = dict()
+        group_metadata[parent_group.path] = {}
 
     if parent_group.path not in group_list:
         group_list.append(parent_group.path)
@@ -355,6 +355,6 @@ def get_variable_data(group, var_info, var_metadata):
 
         # Generate variable attribute map
         if var_path not in var_metadata:
-            var_metadata[var_path] = dict()
+            var_metadata[var_path] = {}
 
         get_metadata(var, var_metadata[var_path])

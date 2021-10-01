@@ -191,7 +191,7 @@ def _check_exit(processes):
             if process.exitcode == 0:
                 processes.remove(process)
             else:
-                raise RuntimeError('Merging failed - exit code: {}'.format(process.exitcode))
+                raise RuntimeError(f'Merging failed - exit code: {process.exitcode}')
 
 
 def resize_var(var, var_info, max_dims):

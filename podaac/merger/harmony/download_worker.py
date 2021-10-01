@@ -50,15 +50,15 @@ def multi_core_download(urls, destination_dir, access_token, cfg, process_count=
         # Spawn worker processes
         processes = []
         for _ in range(process_count):
-            process = Process(target=_download_worker, args=(url_queue, path_list, destination_dir, access_token, cfg))
-            processes.append(process)
-            process.start()
+            download_process = Process(target=_download_worker, args=(url_queue, path_list, destination_dir, access_token, cfg))
+            processes.append(download_process)
+            download_process.start()
 
         # Ensure worker processes exit successfully
         for process in processes:
             process.join()
             if process.exitcode != 0:
-                raise RuntimeError('Download failed - exit code: {}'.format(process.exitcode))
+                raise RuntimeError(f'Download failed - exit code: {process.exitcode}')
 
             process.close()
 
