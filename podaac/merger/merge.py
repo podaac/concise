@@ -31,7 +31,7 @@ def merge_netcdf_files(input_files, output_file, logger=getLogger(__name__), per
     """
 
     if perf_stats is None:
-        perf_stats = dict()
+        perf_stats = {}
 
     if process_count is None:
         process_count = cpu_count()
