@@ -98,7 +98,7 @@ jobs:
             -Dsonar.projectVersion=${{ env.software_version }}
             -Dsonar.python.version=3.9
       - name: Run Snyk on Python
-        uses: snyk/actions/python-3.9@master
+        uses: snyk/actions/python-3.8@master
         continue-on-error: true # To make sure that SARIF upload gets called
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
