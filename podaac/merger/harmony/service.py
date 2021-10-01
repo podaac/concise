@@ -70,8 +70,8 @@ class ConciseService(BaseHarmonyAdapter):
             return result
 
         # -- Process metadata --
-        bbox = list()
-        granule_urls = list()
+        bbox = []
+        granule_urls = []
         datetimes = [
             datetime.max.replace(tzinfo=timezone.utc),  # start
             datetime.min.replace(tzinfo=timezone.utc)   # end
