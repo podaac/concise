@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - As a developer, I want to create a Harmony service lib wrapper for the granule concatenation service
   - PODAAC-3663
     - As a developer, I want the subset_files data in my concatenated data to contain original filenames
+  - PODAAC-3860
+    - Created a UMM-S record for Concise
+    - Utilize cmr-umm-updater Github Action for auto-publication of UMM-S changes/version bumps
 ### Changed 
   - Moved to GitHub.com!
 ### Deprecated 
