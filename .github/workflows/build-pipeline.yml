@@ -127,7 +127,7 @@ jobs:
           tag: ${{ env.software_version }}
           message: "Version ${{ env.software_version }}"
       - name: Publish UMM-S with new version
-        uses: podaac/cmr-umm-updater@0.0.1-alpha.0
+        uses: podaac/cmr-umm-updater@0.0.1-alpha.1
         if: |
           github.ref == 'refs/heads/main'    ||
           startsWith(github.ref, 'refs/heads/release')
