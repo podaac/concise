@@ -1,0 +1,28 @@
+{
+    "URL": {
+        "Description": "PROJECT HOME PAGE",
+        "URLValue": "https://harmony.earthdata.nasa.gov"
+    },
+    "Type": "Harmony",
+    "ServiceKeywords": [
+        {
+            "ServiceCategory": "EARTH SCIENCE SERVICES",
+            "ServiceTopic": "DATA MANAGEMENT/DATA HANDLING",
+            "ServiceTerm": "DATA_CUSTOMIZATION"
+        }
+    ],
+    "ServiceOrganizations": [
+        {
+            "Roles": [
+                "ORIGINATOR"
+            ],
+            "ShortName": "NASA/JPL/PODAAC",
+            "LongName": "Physical Oceanography Distributed Active Archive Center, Jet Propulsion Laboratory, NASA"
+        }
+    ],
+    "AccessConstraints": "None",
+    "Description": "Endpoint for concatenating L2 data via Harmony",
+    "Version": "#.#.#",
+    "Name": "PODAAC Concise",
+    "LongName": "PODAAC Level 2 Concatenation Service"
+}
