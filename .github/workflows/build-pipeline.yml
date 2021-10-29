@@ -134,8 +134,8 @@ jobs:
         with:
           umm-s-json: 'cmr/concise_cmr_umm_s.json'
           provider: 'POCLOUD'
-          env: $({ env.venue })
-          version: $({ env.software_version })
+          env: ${{ env.venue }}
+          version: ${{ env.software_version }}
       - name: Build Docs
         run: |
           poetry run sphinx-build -b html ./docs docs/_build/
