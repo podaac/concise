@@ -14,6 +14,9 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  defaults:
+    run:
+      working-directory: ${{ github.workspace }}
   # First job in the workflow installs and verifies the software
   build:
     name: Build, Test, Verify, Publish
