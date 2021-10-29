@@ -136,6 +136,9 @@ jobs:
           provider: 'POCLOUD'
           env: ${{ env.venue }}
           version: ${{ env.software_version }}
+        env:
+          cmr_user: ${{secrets.CMR_USER}}
+          cmr_pass: ${{secrets.CMR_PASS}}
       - name: Build Docs
         run: |
           poetry run sphinx-build -b html ./docs docs/_build/
