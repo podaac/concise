@@ -63,3 +63,20 @@ class TestVariableInfo(TestCase):
 
         self.assertEqual(VariableInfo(mock_1), VariableInfo(mock_2))
         self.assertNotEqual(VariableInfo(mock_1), VariableInfo(mock_3))
+
+    def test_eq_nan(self):
+        mock_conf = {
+            'name': 'Test Var',
+            'dimensions': ['A', 'B', 'C'],
+            'datatype': np.single,
+            'group': Mock(return_value=Mock(path='/Group')),
+            '_FillValue': np.nan
+        }
+
+        mock_1 = Mock(spec=Variable)
+        mock_2 = Mock(spec=Variable)
+
+        mock_1.configure_mock(**mock_conf)
+        mock_2.configure_mock(**mock_conf)
+
+        self.assertEqual(VariableInfo(mock_1), VariableInfo(mock_2))
