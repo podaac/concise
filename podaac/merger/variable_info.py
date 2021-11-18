@@ -1,4 +1,5 @@
 """Wrapper used to manage variable metadata"""
+import numpy as np
 
 
 class VariableInfo:
@@ -46,6 +47,9 @@ class VariableInfo:
             self.dim_order == other.dim_order and
             self.datatype == other.datatype and
             self.name == other.name and
-            self.fill_value == other.fill_value and
+            (
+                self.fill_value == other.fill_value or
+                np.array_equal(self.fill_value, other.fill_value, equal_nan=True)
+            ) and
             self.group_path == other.group_path
         )
