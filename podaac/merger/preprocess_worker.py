@@ -1,8 +1,13 @@
 """Preprocessing methods and the utilities to automagically run them in single-thread/multiprocess modes"""
 
-from copy import deepcopy
-from multiprocessing import Manager, Process
+import json
+import os
 import queue
+from copy import deepcopy
+from datetime import datetime, timezone
+from multiprocessing import Manager, Process
+
+import importlib_metadata
 import netCDF4 as nc
 import numpy as np
 
@@ -71,6 +76,54 @@ def merge_metadata(merged_metadata, subset_metadata):
                 merged_attrs[attr_name] = False  # mark as inconsistent
 
 
+def construct_history(input_files):
+    """
+    Construct history JSON entry for this concatenation operation
+    https://wiki.earthdata.nasa.gov/display/TRT/In-File+Provenance+Metadata+-+TRT-42
+
+    Parameters
+    ----------
+    input_files : list
+        List of input files
+
+    Returns
+    -------
+    dict
+        History JSON constructed for this concat operation
+    """
+    base_names = list(map(os.path.basename, input_files))
+    history_json = {
+        "date_time": datetime.now(tz=timezone.utc).isoformat(),
+        "derived_from": base_names,
+        "program": 'concise',
+        "version": importlib_metadata.distribution('podaac-concise').version,
+        "parameters": f'input_files={input_files}',
+        "program_ref": "https://cmr.earthdata.nasa.gov:443/search/concepts/S2153799015-POCLOUD",
+        "$schema": "https://harmony.earthdata.nasa.gov/schemas/history/0.1.0/history-v0.1.0.json"
+    }
+    return history_json
+
+
+def retrieve_history(dataset):
+    """
+    Retrieve history_json field from NetCDF dataset, if it exists
+
+    Parameters
+    ----------
+    dataset : netCDF4.Dataset
+        NetCDF Dataset representing a single granule
+
+    Returns
+    -------
+    dict
+        history_json field
+    """
+    if 'history_json' not in dataset.ncattrs():
+        return []
+    history_json = dataset.getncattr('history_json')
+    return json.loads(history_json)
+
+
 def _run_single_core(file_list):
     """
     Run the granule preprocessing in the current thread/single-core mode
@@ -90,13 +143,21 @@ def _run_single_core(file_list):
     max_dims = {}
     var_metadata = {}
     group_metadata = {}
+    history_json = []
 
     for file in file_list:
         with nc.Dataset(file, 'r') as dataset:
             dataset.set_auto_maskandscale(False)
             process_groups(dataset, group_list, max_dims, group_metadata, var_metadata, var_info)
+            history_json.extend(retrieve_history(dataset))
 
     group_list.sort()  # Ensure insertion order doesn't matter between granules
+
+    history_json.append(construct_history(file_list))
+    group_metadata[group_list[0]]['history_json'] = json.dumps(
+        history_json,
+        default=str
+    )
 
     return {
         'group_list': group_list,
@@ -156,6 +217,7 @@ def _run_multi_core(file_list, process_count):
     max_dims = {}
     var_metadata = {}
     group_metadata = {}
+    history_json = []
 
     for result in results:
         # The following data should be consistent between granules and
@@ -175,6 +237,15 @@ def _run_multi_core(file_list, process_count):
         merge_max_dims(max_dims, result['max_dims'])
         merge_metadata(var_metadata, result['var_metadata'])
         merge_metadata(group_metadata, result['group_metadata'])
+
+        # Merge history_json entries from input files
+        history_json.extend(result['history_json'])
+
+    history_json.append(construct_history(file_list))
+    group_metadata[group_list[0]]['history_json'] = json.dumps(
+        history_json,
+        default=str
+    )
 
     return {
         'group_list': group_list,
@@ -207,6 +278,7 @@ def _run_worker(in_queue, results):
     var_info = {}
     var_metadata = {}
     group_metadata = {}
+    history_json = []
 
     while not in_queue.empty():
         try:
@@ -218,6 +290,7 @@ def _run_worker(in_queue, results):
         with nc.Dataset(file, 'r') as dataset:
             dataset.set_auto_maskandscale(False)
             process_groups(dataset, group_list, max_dims, group_metadata, var_metadata, var_info)
+            history_json.extend(retrieve_history(dataset))
 
     group_list.sort()  # Ensure insertion order doesn't matter between granules
 
@@ -227,7 +300,8 @@ def _run_worker(in_queue, results):
             'max_dims': max_dims,
             'var_info': var_info,
             'var_metadata': var_metadata,
-            'group_metadata': group_metadata
+            'group_metadata': group_metadata,
+            'history_json': history_json
         })
 
 
