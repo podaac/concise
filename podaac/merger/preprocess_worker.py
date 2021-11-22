@@ -1,14 +1,15 @@
 """Preprocessing methods and the utilities to automagically run them in single-thread/multiprocess modes"""
 
-from copy import deepcopy
-from multiprocessing import Manager, Process
-import queue
-import netCDF4 as nc
-import numpy as np
-import importlib_metadata
-from datetime import datetime, timezone
 import json
 import os
+import queue
+from copy import deepcopy
+from datetime import datetime, timezone
+from multiprocessing import Manager, Process
+
+import importlib_metadata
+import netCDF4 as nc
+import numpy as np
 
 from podaac.merger.path_utils import get_group_path
 from podaac.merger.variable_info import VariableInfo
@@ -245,7 +246,6 @@ def _run_multi_core(file_list, process_count):
         history_json,
         default=str
     )
-
 
     return {
         'group_list': group_list,
