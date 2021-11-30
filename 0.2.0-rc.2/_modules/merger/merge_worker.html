@@ -1,0 +1,434 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>merger.merge_worker &mdash; podaac-concise 0.2.0rc2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> podaac-concise
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.0rc2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">podaac</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">podaac-concise</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>merger.merge_worker</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for merger.merge_worker</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Preprocessing methods and the utilities to automagically run them in single-thread/multiprocess modes&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">from</span> <span class="nn">multiprocessing.shared_memory</span> <span class="kn">import</span> <span class="n">SharedMemory</span>
+<span class="kn">import</span> <span class="nn">queue</span>
+<span class="kn">import</span> <span class="nn">netCDF4</span> <span class="k">as</span> <span class="nn">nc</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">podaac.merger.path_utils</span> <span class="kn">import</span> <span class="n">resolve_dim</span><span class="p">,</span> <span class="n">resolve_group</span>
+
+
+<div class="viewcode-block" id="run_merge"><a class="viewcode-back" href="../../merger.html#merger.merge_worker.run_merge">[docs]</a><span class="k">def</span> <span class="nf">run_merge</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="n">process_count</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Automagically run merging in an optimized mode determined by the environment</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    merged_dataset : nc.Dataset</span>
+<span class="sd">        Destination dataset of the merge operation</span>
+<span class="sd">    file_list : list</span>
+<span class="sd">        List of file paths to be processed</span>
+<span class="sd">    var_info : dict</span>
+<span class="sd">        Dictionary of variable paths and associated VariableInfo</span>
+<span class="sd">    max_dims : dict</span>
+<span class="sd">        Dictionary of dimension paths and maximum dimensions found during preprocessing</span>
+<span class="sd">    process_count : int</span>
+<span class="sd">        Number of worker processes to run (expected &gt;= 1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">process_count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">_run_single_core</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Merging is bottlenecked at the write process which is single threaded</span>
+        <span class="c1"># so spinning up more than 2 processes for read/write won&#39;t scale the</span>
+        <span class="c1"># optimization</span>
+        <span class="n">_run_multi_core</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_run_single_core</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run the variable merge in the current thread/single-core mode</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    merged_dataset : nc.Dataset</span>
+<span class="sd">        Destination dataset of the merge operation</span>
+<span class="sd">    file_list : list</span>
+<span class="sd">        List of file paths to be processed</span>
+<span class="sd">    var_info : dict</span>
+<span class="sd">        Dictionary of variable paths and associated VariableInfo</span>
+<span class="sd">    max_dims : dict</span>
+<span class="sd">        Dictionary of dimension paths and maximum dimensions found during preprocessing</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">file_list</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">origin_dataset</span><span class="p">:</span>
+            <span class="n">origin_dataset</span><span class="o">.</span><span class="n">set_auto_maskandscale</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">var_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">ds_group</span> <span class="o">=</span> <span class="n">resolve_group</span><span class="p">(</span><span class="n">origin_dataset</span><span class="p">,</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">merged_group</span> <span class="o">=</span> <span class="n">resolve_group</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+                <span class="n">ds_var</span> <span class="o">=</span> <span class="n">ds_group</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">ds_group</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+                <span class="n">merged_var</span> <span class="o">=</span> <span class="n">merged_group</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">ds_group</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+                <span class="n">resized</span> <span class="o">=</span> <span class="n">resize_var</span><span class="p">(</span><span class="n">ds_var</span><span class="p">,</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">max_dims</span><span class="p">)</span>
+                <span class="n">merged_var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">resized</span>
+
+
+<span class="k">def</span> <span class="nf">_run_multi_core</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="n">process_count</span><span class="p">):</span>  <span class="c1"># pylint: disable=too-many-locals</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run the variable merge in multi-core mode. This method creates (process_count - 1)</span>
+<span class="sd">    read processes which read data from an origin granule, resize it, then queue it</span>
+<span class="sd">    for the write process to write to disk. The write process is run in the current</span>
+<span class="sd">    thread</span>
+
+<span class="sd">    # of write processes (1) + # of read processes (process_count - 1) = process_count</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    merged_dataset : nc.Dataset</span>
+<span class="sd">        Destination dataset of the merge operation</span>
+<span class="sd">    file_list : list</span>
+<span class="sd">        List of file paths to be processed</span>
+<span class="sd">    var_info : dict</span>
+<span class="sd">        Dictionary of variable paths and associated VariableInfo</span>
+<span class="sd">    max_dims : dict</span>
+<span class="sd">        Dictionary of dimension paths and maximum dimensions found during preprocessing</span>
+<span class="sd">    process_count : int</span>
+<span class="sd">        Number of worker processes to run (expected &gt;= 2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">total_variables</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">file_list</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">var_info</span><span class="p">)</span>
+
+    <span class="c1"># Ensure SharedMemory doesn&#39;t get cleaned up before being processed</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">get_context</span><span class="p">(</span><span class="s1">&#39;forkserver&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">context</span><span class="o">.</span><span class="n">Manager</span><span class="p">()</span> <span class="k">as</span> <span class="n">manager</span><span class="p">:</span>
+        <span class="n">in_queue</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">Queue</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_list</span><span class="p">))</span>
+        <span class="n">out_queue</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">Queue</span><span class="p">((</span><span class="n">process_count</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">var_info</span><span class="p">))</span>  <span class="c1"># Store (process_count - 1) granules in buffer</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">file_list</span><span class="p">):</span>
+            <span class="n">in_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">file</span><span class="p">))</span>
+
+        <span class="n">processes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">process_count</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">process</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">_run_worker</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">in_queue</span><span class="p">,</span> <span class="n">out_queue</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="n">var_info</span><span class="p">))</span>
+            <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">process</span><span class="p">)</span>
+            <span class="n">process</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="n">processed_variables</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="n">processed_variables</span> <span class="o">&lt;</span> <span class="n">total_variables</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">i</span><span class="p">,</span> <span class="n">var_path</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">memory_name</span> <span class="o">=</span> <span class="n">out_queue</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+                <span class="n">_check_exit</span><span class="p">(</span><span class="n">processes</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">merged_var</span> <span class="o">=</span> <span class="n">merged_dataset</span><span class="p">[</span><span class="n">var_path</span><span class="p">]</span>
+            <span class="n">var_meta</span> <span class="o">=</span> <span class="n">var_info</span><span class="p">[</span><span class="n">var_path</span><span class="p">]</span>
+            <span class="n">shared_memory</span> <span class="o">=</span> <span class="n">SharedMemory</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">memory_name</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">resized_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">var_meta</span><span class="o">.</span><span class="n">datatype</span><span class="p">,</span> <span class="n">shared_memory</span><span class="o">.</span><span class="n">buf</span><span class="p">)</span>
+
+            <span class="n">merged_var</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">resized_arr</span>  <span class="c1"># The write operation itself</span>
+
+            <span class="n">shared_memory</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+            <span class="n">shared_memory</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+            <span class="n">processed_variables</span> <span class="o">=</span> <span class="n">processed_variables</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">process</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+            <span class="c1"># Ensure that child processes properly exit before manager context</span>
+            <span class="c1"># gets GCed. Solves EOFError</span>
+            <span class="n">process</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">_run_worker</span><span class="p">(</span><span class="n">in_queue</span><span class="p">,</span> <span class="n">out_queue</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="n">var_info</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A method to be executed in a separate process which reads variables from a</span>
+<span class="sd">    granule, performs resizing, and queues the processed data up for the writer</span>
+<span class="sd">    process.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    in_queue : Queue</span>
+<span class="sd">        Input queue of tuples of subset indexes and granule file paths respectively</span>
+<span class="sd">    out_queue : Queue</span>
+<span class="sd">        Output queue of tuples of subset indexes, variable path, variable shape, and shared memory name</span>
+<span class="sd">    max_dims : dict</span>
+<span class="sd">        Dictionary of dimension paths and maximum dimensions found during preprocessing</span>
+<span class="sd">    var_info : dict</span>
+<span class="sd">        Dictionary of variable paths and associated VariableInfo</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">in_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">file</span> <span class="o">=</span> <span class="n">in_queue</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+            <span class="k">break</span>
+
+        <span class="k">with</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">origin_dataset</span><span class="p">:</span>
+            <span class="n">origin_dataset</span><span class="o">.</span><span class="n">set_auto_maskandscale</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">var_path</span><span class="p">,</span> <span class="n">var_meta</span> <span class="ow">in</span> <span class="n">var_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">ds_group</span><span class="p">,</span> <span class="n">var_name</span> <span class="o">=</span> <span class="n">resolve_group</span><span class="p">(</span><span class="n">origin_dataset</span><span class="p">,</span> <span class="n">var_path</span><span class="p">)</span>
+                <span class="n">ds_var</span> <span class="o">=</span> <span class="n">ds_group</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span>
+
+                <span class="n">resized_arr</span> <span class="o">=</span> <span class="n">resize_var</span><span class="p">(</span><span class="n">ds_var</span><span class="p">,</span> <span class="n">var_meta</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">)</span>
+
+                <span class="c1"># Copy resized array to shared memory</span>
+                <span class="n">shared_mem</span> <span class="o">=</span> <span class="n">SharedMemory</span><span class="p">(</span><span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">resized_arr</span><span class="o">.</span><span class="n">nbytes</span><span class="p">)</span>
+                <span class="n">shared_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">(</span><span class="n">resized_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">resized_arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=</span><span class="n">shared_mem</span><span class="o">.</span><span class="n">buf</span><span class="p">)</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">copyto</span><span class="p">(</span><span class="n">shared_arr</span><span class="p">,</span> <span class="n">resized_arr</span><span class="p">)</span>
+
+                <span class="n">out_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">var_path</span><span class="p">,</span> <span class="n">shared_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">shared_mem</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="n">shared_mem</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">_check_exit</span><span class="p">(</span><span class="n">processes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensure that all processes have exited without error by checking their exitcode</span>
+<span class="sd">    if they&#39;re no longer running. Processes that have exited properly are removed</span>
+<span class="sd">    from the list</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    processes : list</span>
+<span class="sd">        List of processes to check</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">process</span> <span class="ow">in</span> <span class="n">processes</span><span class="o">.</span><span class="n">copy</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">process</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">process</span><span class="o">.</span><span class="n">exitcode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">processes</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">process</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Merging failed - exit code: </span><span class="si">{</span><span class="n">process</span><span class="o">.</span><span class="n">exitcode</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="resize_var"><a class="viewcode-back" href="../../merger.html#merger.merge_worker.resize_var">[docs]</a><span class="k">def</span> <span class="nf">resize_var</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Resizes a variable&#39;s data to the maximum dimensions found in preprocessing.</span>
+<span class="sd">    This method will never downscale a variable and only performs bottom and</span>
+<span class="sd">    left padding as utilized in the original Java implementation</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    var : nc.Variable</span>
+<span class="sd">        variable to be resized</span>
+<span class="sd">    group_path : str</span>
+<span class="sd">        group path to this variable</span>
+<span class="sd">    max_dims : dict</span>
+<span class="sd">        dictionary of maximum dimensions found during preprocessing</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        An ndarray containing the resized data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># special case for 0d variables</span>
+    <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">var</span><span class="p">[:]</span>
+
+    <span class="c1"># generate ordered array of new widths</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">resolve_dim</span><span class="p">(</span><span class="n">max_dims</span><span class="p">,</span> <span class="n">var_info</span><span class="o">.</span><span class="n">group_path</span><span class="p">,</span> <span class="n">dim</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">-</span> <span class="n">dim</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">get_dims</span><span class="p">()]</span>
+    <span class="n">widths</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">]</span>
+
+    <span class="c1"># Legacy merger doesn&#39;t explicitly define this behavior, but its resizer</span>
+    <span class="c1"># fills its resized arrays with 0s upon initialization. Sources:</span>
+    <span class="c1"># https://github.com/Unidata/netcdf-java/blob/87f37eb82b6f862f71e0d5767470500b27af5d1e/cdm-core/src/main/java/ucar/ma2/Array.java#L52</span>
+    <span class="n">fill_value</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">var_info</span><span class="o">.</span><span class="n">fill_value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">var_info</span><span class="o">.</span><span class="n">fill_value</span>
+
+    <span class="n">resized</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">widths</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="n">constant_values</span><span class="o">=</span><span class="n">fill_value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">resized</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright .
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
