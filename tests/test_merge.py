@@ -6,6 +6,9 @@ from shutil import rmtree
 import netCDF4 as nc
 import numpy as np
 import pytest
+import json
+import os
+import importlib_metadata
 
 from podaac.merger import merge
 
@@ -169,3 +172,61 @@ class TestMerge(TestCase):
 
     def test_compare_java_multi(self):
         self.run_java_verification('python_merge_multi.nc')
+
+    def test_history(self):
+        data_dir = 'no_groups'
+        output_name_single = 'test_history_single.nc'
+        output_name_multi = 'test_history_multi.nc'
+        data_path = self.__test_data_path.joinpath(data_dir)
+        input_files = list(data_path.iterdir())
+
+        def assert_valid_history(merged_dataset, input_files):
+            input_files = [os.path.basename(file_name) for file_name in input_files]
+            history_json = json.loads(merged_dataset.getncattr('history_json'))[-1]
+            assert 'date_time' in history_json
+            assert history_json.get('program') == 'concise'
+            assert history_json.get('derived_from') == input_files
+            assert history_json.get('version') == importlib_metadata.distribution('podaac-concise').version
+            assert 'input_files=' in history_json.get('parameters')
+            assert history_json.get('program_ref') == 'https://cmr.earthdata.nasa.gov:443/search/concepts/S2153799015-POCLOUD'
+            assert history_json.get('$schema') == 'https://harmony.earthdata.nasa.gov/schemas/history/0.1.0/history-v0.1.0.json'
+
+        # Single core mode
+        merge.merge_netcdf_files(
+            input_files=input_files,
+            output_file=self.__output_path.joinpath(output_name_single),
+            process_count=1
+        )
+        merged_dataset = nc.Dataset(self.__output_path.joinpath(output_name_single))
+        assert_valid_history(merged_dataset, input_files)
+
+        merged_dataset.close()
+
+        # Multi core mode
+        merge.merge_netcdf_files(
+            input_files=input_files,
+            output_file=self.__output_path.joinpath(output_name_multi),
+            process_count=2
+        )
+        merged_dataset = nc.Dataset(self.__output_path.joinpath(output_name_multi))
+        assert_valid_history(merged_dataset, input_files)
+
+        merged_dataset.close()
+
+        # Run again, but use l2ss-py output which contains existing
+        # history_json. Concise history should contain new entry plus
+        # all entries from input files
+        data_path = self.__test_data_path.joinpath('l2ss_py_output')
+        input_files = list(data_path.iterdir())
+        merge.merge_netcdf_files(
+            input_files=input_files,
+            output_file=self.__output_path.joinpath(output_name_single),
+            process_count=1
+        )
+        merged_dataset = nc.Dataset(self.__output_path.joinpath(output_name_single))
+        assert_valid_history(merged_dataset, input_files)
+        history_json = json.loads(merged_dataset.getncattr('history_json'))
+        assert len(history_json) == 3
+        assert history_json[0]['program'] == 'l2ss-py'
+        assert history_json[1]['program'] == 'l2ss-py'
+        assert history_json[2]['program'] == 'concise'
