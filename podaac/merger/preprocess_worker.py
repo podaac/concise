@@ -145,9 +145,7 @@ def _run_single_core(file_list):
     group_metadata = {}
     history_json = []
 
-    i = 0
     for file in file_list:
-        print(file)
         with nc.Dataset(file, 'r') as dataset:
             dataset.set_auto_maskandscale(False)
             process_groups(dataset, group_list, max_dims, group_metadata, var_metadata, var_info)

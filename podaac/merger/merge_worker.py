@@ -3,11 +3,12 @@
 import multiprocessing
 from multiprocessing.shared_memory import SharedMemory
 import queue
+import time
 import netCDF4 as nc
 import numpy as np
-import time
 
 from podaac.merger.path_utils import resolve_dim, resolve_group
+
 
 def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logger=None):
     """
