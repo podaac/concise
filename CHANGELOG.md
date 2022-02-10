@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [issue-14](https://github.com/podaac/concise/issues/14): Added support 
+  for concatenating granules together that have different variables
 ### Changed 
 ### Deprecated 
 ### Removed 
