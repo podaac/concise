@@ -5,11 +5,11 @@ from multiprocessing.shared_memory import SharedMemory
 import queue
 import netCDF4 as nc
 import numpy as np
+import time
 
 from podaac.merger.path_utils import resolve_dim, resolve_group
 
-
-def run_merge(merged_dataset, file_list, var_info, max_dims, process_count):
+def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logger=None):
     """
     Automagically run merging in an optimized mode determined by the environment
 
@@ -33,7 +33,7 @@ def run_merge(merged_dataset, file_list, var_info, max_dims, process_count):
         # Merging is bottlenecked at the write process which is single threaded
         # so spinning up more than 2 processes for read/write won't scale the
         # optimization
-        _run_multi_core(merged_dataset, file_list, var_info, max_dims, 2)
+        _run_multi_core(merged_dataset, file_list, var_info, max_dims, 2, logger=logger)
 
 
 def _run_single_core(merged_dataset, file_list, var_info, max_dims):
@@ -66,7 +66,7 @@ def _run_single_core(merged_dataset, file_list, var_info, max_dims):
                 merged_var[i] = resized
 
 
-def _run_multi_core(merged_dataset, file_list, var_info, max_dims, process_count):  # pylint: disable=too-many-locals
+def _run_multi_core(merged_dataset, file_list, var_info, max_dims, process_count, logger=None):  # pylint: disable=too-many-locals
     """
     Run the variable merge in multi-core mode. This method creates (process_count - 1)
     read processes which read data from an origin granule, resize it, then queue it
@@ -88,7 +88,10 @@ def _run_multi_core(merged_dataset, file_list, var_info, max_dims, process_count
     process_count : int
         Number of worker processes to run (expected >= 2)
     """
+
+    logger.info("Running multicore ......")
     total_variables = len(file_list) * len(var_info)
+    logger.info(f"total variables {total_variables}")
 
     # Ensure SharedMemory doesn't get cleaned up before being processed
     context = multiprocessing.get_context('forkserver')
@@ -96,18 +99,24 @@ def _run_multi_core(merged_dataset, file_list, var_info, max_dims, process_count
     with context.Manager() as manager:
         in_queue = manager.Queue(len(file_list))
         out_queue = manager.Queue((process_count - 1) * len(var_info))  # Store (process_count - 1) granules in buffer
+        memory_limit = manager.Value('i', 0)
+        lock = manager.Lock()
 
+        logger.info(file_list)
         for i, file in enumerate(file_list):
             in_queue.put((i, file))
 
         processes = []
+
+        logger.info("creating read processes")
         for _ in range(process_count - 1):
-            process = context.Process(target=_run_worker, args=(in_queue, out_queue, max_dims, var_info))
+            process = context.Process(target=_run_worker, args=(in_queue, out_queue, max_dims, var_info, memory_limit, lock))
             processes.append(process)
             process.start()
 
         processed_variables = 0
 
+        logger.info("Start processing variables in main process")
         while processed_variables < total_variables:
             try:
                 i, var_path, shape, memory_name = out_queue.get_nowait()
@@ -121,7 +130,8 @@ def _run_multi_core(merged_dataset, file_list, var_info, max_dims, process_count
             resized_arr = np.ndarray(shape, var_meta.datatype, shared_memory.buf)
 
             merged_var[i] = resized_arr  # The write operation itself
-
+            with lock:
+                memory_limit.value = memory_limit.value - resized_arr.nbytes
             shared_memory.unlink()
             shared_memory.close()
 
@@ -133,7 +143,7 @@ def _run_multi_core(merged_dataset, file_list, var_info, max_dims, process_count
             process.join()
 
 
-def _run_worker(in_queue, out_queue, max_dims, var_info):
+def _run_worker(in_queue, out_queue, max_dims, var_info, memory_limit, lock):
     """
     A method to be executed in a separate process which reads variables from a
     granule, performs resizing, and queues the processed data up for the writer
@@ -150,7 +160,9 @@ def _run_worker(in_queue, out_queue, max_dims, var_info):
     var_info : dict
         Dictionary of variable paths and associated VariableInfo
     """
+
     while not in_queue.empty():
+
         try:
             i, file = in_queue.get_nowait()
         except queue.Empty:
@@ -160,15 +172,21 @@ def _run_worker(in_queue, out_queue, max_dims, var_info):
             origin_dataset.set_auto_maskandscale(False)
 
             for var_path, var_meta in var_info.items():
+
                 ds_group, var_name = resolve_group(origin_dataset, var_path)
                 ds_var = ds_group.variables[var_name]
-
                 resized_arr = resize_var(ds_var, var_meta, max_dims)
+
+                # Limit to how much memory we allocate to 60 MB
+                while memory_limit.value + resized_arr.nbytes > 60000000 and not out_queue.empty():
+                    time.sleep(.5)
 
                 # Copy resized array to shared memory
                 shared_mem = SharedMemory(create=True, size=resized_arr.nbytes)
                 shared_arr = np.ndarray(resized_arr.shape, resized_arr.dtype, buffer=shared_mem.buf)
                 np.copyto(shared_arr, resized_arr)
+                with lock:
+                    memory_limit.value = memory_limit.value + resized_arr.nbytes
 
                 out_queue.put((i, var_path, shared_arr.shape, shared_mem.name))
                 shared_mem.close()
