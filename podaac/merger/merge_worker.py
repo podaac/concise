@@ -62,7 +62,7 @@ def _run_single_core(merged_dataset, file_list, var_info, max_dims):
 
                 merged_var = merged_group[0].variables[var_name]
 
-                if not ds_var:
+                if ds_var == None:
                     fill_value = var_meta.fill_value
                     target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
                     merged_var[i] = np.full(target_shape, fill_value)
@@ -169,7 +169,7 @@ def _run_worker(in_queue, out_queue, max_dims, var_info):
                 ds_group, var_name = resolve_group(origin_dataset, var_path)
                 ds_var = ds_group.variables.get(var_name)
 
-                if not ds_var:
+                if ds_var == None:
                     fill_value = var_meta.fill_value
                     target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
                     resized_arr = np.full(target_shape, fill_value)
