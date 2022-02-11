@@ -10,7 +10,7 @@ import numpy as np
 from podaac.merger.path_utils import resolve_dim, resolve_group
 
 
-def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logger=None):
+def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logger):
     """
     Automagically run merging in an optimized mode determined by the environment
 
@@ -34,7 +34,7 @@ def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logg
         # Merging is bottlenecked at the write process which is single threaded
         # so spinning up more than 2 processes for read/write won't scale the
         # optimization
-        _run_multi_core(merged_dataset, file_list, var_info, max_dims, 2, logger=logger)
+        _run_multi_core(merged_dataset, file_list, var_info, max_dims, 2, logger)
 
 
 def _run_single_core(merged_dataset, file_list, var_info, max_dims):
@@ -67,7 +67,7 @@ def _run_single_core(merged_dataset, file_list, var_info, max_dims):
                 merged_var[i] = resized
 
 
-def _run_multi_core(merged_dataset, file_list, var_info, max_dims, process_count, logger=None):  # pylint: disable=too-many-locals
+def _run_multi_core(merged_dataset, file_list, var_info, max_dims, process_count, logger):  # pylint: disable=too-many-locals
     """
     Run the variable merge in multi-core mode. This method creates (process_count - 1)
     read processes which read data from an origin granule, resize it, then queue it

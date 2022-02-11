@@ -59,7 +59,7 @@ def merge_netcdf_files(input_files, output_file, logger=getLogger(__name__), per
     # -- merge datasets --
     logger.info('Merging datasets...')
     start = perf_counter()
-    run_merge(merged_dataset, input_files, var_info, max_dims, process_count, logger=logger)
+    run_merge(merged_dataset, input_files, var_info, max_dims, process_count, logger)
 
     perf_stats['merge'] = perf_counter() - start
     logger.info('Merging completed: %f', perf_stats['merge'])
