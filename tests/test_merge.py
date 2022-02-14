@@ -230,3 +230,37 @@ class TestMerge(TestCase):
         assert history_json[0]['program'] == 'l2ss-py'
         assert history_json[1]['program'] == 'l2ss-py'
         assert history_json[2]['program'] == 'concise'
+
+    def test_mismatched_vars(self):
+        """
+        Some collections have granules with mismatched vars. For
+        example, MODIS_T-JPL-L2P-v2019.0 has day/night granules where
+        the variables are slightly different. Test the union of all
+        variables across all input granules is present in the final
+        merged granule.
+        """
+        data_path = self.__test_data_path.joinpath('var_mismatch')
+        input_files = list(data_path.iterdir())
+        output_path_single = self.__output_path.joinpath('test_mismatched_vars_single.nc')
+        output_path_multi = self.__output_path.joinpath('test_mismatched_vars_multi.nc')
+
+        expected_vars = {
+            'dt_analysis', 'lon', 'chlorophyll_a', 'K_490', 'lat', 'quality_level',
+            'sea_surface_temperature', 'wind_speed', 'sses_standard_deviation_4um',
+            'quality_level_4um', 'sses_bias_4um', 'sea_surface_temperature_4um',
+            'sses_standard_deviation', 'sst_dtime', 'time', 'sses_bias', 'l2p_flags'
+        }
+
+        # Test single process merge
+        merge.merge_netcdf_files(input_files, output_path_single, process_count=1)
+        dataset = nc.Dataset(output_path_single)
+        actual_vars = set(dataset.variables.keys())
+        actual_vars.remove('subset_files')
+        assert actual_vars == expected_vars
+
+        # Test multi-process merge
+        merge.merge_netcdf_files(input_files, output_path_multi, process_count=2)
+        dataset = nc.Dataset(output_path_multi)
+        actual_vars = set(dataset.variables.keys())
+        actual_vars.remove('subset_files')
+        assert actual_vars == expected_vars

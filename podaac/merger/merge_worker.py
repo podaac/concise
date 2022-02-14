@@ -55,14 +55,20 @@ def _run_single_core(merged_dataset, file_list, var_info, max_dims):
         with nc.Dataset(file, 'r') as origin_dataset:
             origin_dataset.set_auto_maskandscale(False)
 
-            for item in var_info.items():
-                ds_group = resolve_group(origin_dataset, item[0])
-                merged_group = resolve_group(merged_dataset, item[0])
+            for var_path, var_meta in var_info.items():
+                ds_group, var_name = resolve_group(origin_dataset, var_path)
+                merged_group = resolve_group(merged_dataset, var_path)
+                ds_var = ds_group.variables.get(var_name)
 
-                ds_var = ds_group[0].variables[ds_group[1]]
-                merged_var = merged_group[0].variables[ds_group[1]]
+                merged_var = merged_group[0].variables[var_name]
 
-                resized = resize_var(ds_var, item[1], max_dims)
+                if ds_var is None:
+                    fill_value = var_meta.fill_value
+                    target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
+                    merged_var[i] = np.full(target_shape, fill_value)
+                    continue
+
+                resized = resize_var(ds_var, var_meta, max_dims)
                 merged_var[i] = resized
 
 
@@ -161,9 +167,14 @@ def _run_worker(in_queue, out_queue, max_dims, var_info):
 
             for var_path, var_meta in var_info.items():
                 ds_group, var_name = resolve_group(origin_dataset, var_path)
-                ds_var = ds_group.variables[var_name]
+                ds_var = ds_group.variables.get(var_name)
 
-                resized_arr = resize_var(ds_var, var_meta, max_dims)
+                if ds_var is None:
+                    fill_value = var_meta.fill_value
+                    target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
+                    resized_arr = np.full(target_shape, fill_value)
+                else:
+                    resized_arr = resize_var(ds_var, var_meta, max_dims)
 
                 # Copy resized array to shared memory
                 shared_mem = SharedMemory(create=True, size=resized_arr.nbytes)
