@@ -4,10 +4,26 @@ import multiprocessing
 from multiprocessing.shared_memory import SharedMemory
 import queue
 import time
+import os
+import shutil
 import netCDF4 as nc
 import numpy as np
 
 from podaac.merger.path_utils import resolve_dim, resolve_group
+
+
+def shared_memory_size():
+    """
+    try to get the shared memory space size by reading the /dev/shm on linux machines
+    """
+    path = "/dev/shm"
+    try:
+        stat = shutil.disk_usage(path)
+        return stat.total
+    except FileNotFoundError:
+        # Get memory size via env or default to 60 MB
+        default_memory_size = os.getenv("SHARED_MEMORY_SIZE", "60000000")
+        return int(default_memory_size)
 
 
 def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logger):
@@ -162,6 +178,9 @@ def _run_worker(in_queue, out_queue, max_dims, var_info, memory_limit, lock):
         Dictionary of variable paths and associated VariableInfo
     """
 
+    # want to use max 95% of the memory size of disk
+    max_memory_size = round(shared_memory_size() * .95)
+
     while not in_queue.empty():
 
         try:
@@ -178,8 +197,8 @@ def _run_worker(in_queue, out_queue, max_dims, var_info, memory_limit, lock):
                 ds_var = ds_group.variables[var_name]
                 resized_arr = resize_var(ds_var, var_meta, max_dims)
 
-                # Limit to how much memory we allocate to 60 MB
-                while memory_limit.value + resized_arr.nbytes > 60000000 and not out_queue.empty():
+                # Limit to how much memory we allocate to max memory size
+                while memory_limit.value + resized_arr.nbytes > max_memory_size and not out_queue.empty():
                     time.sleep(.5)
 
                 # Copy resized array to shared memory
