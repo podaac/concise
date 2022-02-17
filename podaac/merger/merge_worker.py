@@ -16,9 +16,8 @@ def shared_memory_size():
     """
     try to get the shared memory space size by reading the /dev/shm on linux machines
     """
-    path = "/dev/shm"
     try:
-        stat = shutil.disk_usage(path)
+        stat = shutil.disk_usage("/dev/shm")
         return stat.total
     except FileNotFoundError:
         # Get memory size via env or default to 60 MB
@@ -153,11 +152,10 @@ def _run_multi_core(merged_dataset, file_list, var_info, max_dims, process_count
             resized_arr = np.ndarray(shape, var_meta.datatype, shared_memory.buf)
 
             merged_var[i] = resized_arr  # The write operation itself
-            with lock:
-                memory_limit.value = memory_limit.value - resized_arr.nbytes
             shared_memory.unlink()
             shared_memory.close()
-
+            with lock:
+                memory_limit.value = memory_limit.value - resized_arr.nbytes
             processed_variables = processed_variables + 1
 
         for process in processes:
@@ -208,6 +206,9 @@ def _run_worker(in_queue, out_queue, max_dims, var_info, memory_limit, lock):
                     resized_arr = np.full(target_shape, fill_value)
                 else:
                     resized_arr = resize_var(ds_var, var_meta, max_dims)
+
+                if resized_arr.nbytes > max_memory_size:
+                    raise RuntimeError(f'Merging failed - MAX MEMORY REACHED: {resized_arr.nbytes}')
 
                 # Limit to how much memory we allocate to max memory size
                 while memory_limit.value + resized_arr.nbytes > max_memory_size and not out_queue.empty():
