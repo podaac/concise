@@ -11,7 +11,20 @@ from podaac.merger.path_utils import get_group_path, resolve_dim, resolve_group
 from podaac.merger.preprocess_worker import run_preprocess
 
 
-def merge_netcdf_files(input_files, output_file, logger=getLogger(__name__), perf_stats=None, process_count=None):
+def is_file_empty(parent_group):
+    """
+    Function to test if a all variable size in a dataset is 0
+    """
+
+    for var in parent_group.variables.values():
+        if var.size != 0:
+            return False
+    for child_group in parent_group.groups.values():
+        return is_file_empty(child_group)
+    return True
+
+
+def merge_netcdf_files(original_input_files, output_file, logger=getLogger(__name__), perf_stats=None, process_count=None):  # pylint: disable=too-many-locals
     """
     Main entrypoint to merge implementation. Merges n >= 2 granules together as a single
     granule. Named in reference to original Java implementation.
@@ -42,6 +55,15 @@ def merge_netcdf_files(input_files, output_file, logger=getLogger(__name__), per
     logger.info('Preprocessing data...')
     start = perf_counter()
 
+    input_files = []
+
+    # only concatinate files that are not empty
+    for file in original_input_files:
+        with nc.Dataset(file, 'r') as dataset:
+            is_empty = is_file_empty(dataset)
+            if is_empty is False:
+                input_files.append(file)
+
     preprocess = run_preprocess(input_files, process_count)
     group_list = preprocess['group_list']
     max_dims = preprocess['max_dims']
@@ -59,7 +81,7 @@ def merge_netcdf_files(input_files, output_file, logger=getLogger(__name__), per
     # -- merge datasets --
     logger.info('Merging datasets...')
     start = perf_counter()
-    run_merge(merged_dataset, input_files, var_info, max_dims, process_count)
+    run_merge(merged_dataset, input_files, var_info, max_dims, process_count, logger)
 
     perf_stats['merge'] = perf_counter() - start
     logger.info('Merging completed: %f', perf_stats['merge'])

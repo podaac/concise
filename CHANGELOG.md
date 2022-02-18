@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [issue-14](https://github.com/podaac/concise/issues/14): Added support 
-  for concatenating granules together that have different variables
+  - PODAAC-4171
+    - Add AVHRRMTA_G-NAVO-L2P-v1.0 to associations
+    - Added in shared memory allocation limit in fork process
+  - PODAAC-4173
+    - Add AVHRRMTB_G-NAVO-L2P-v1.0 to associations
+  - [issue 10](https://github.com/podaac/concise/issues/10):
+    Handle empty granule files.
+  - [issue-14](https://github.com/podaac/concise/issues/14): Added support 
+    for concatenating granules together that have different variables
 ### Changed 
 ### Deprecated 
 ### Removed 

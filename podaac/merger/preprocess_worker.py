@@ -424,6 +424,7 @@ def get_variable_data(group, var_info, var_metadata):
     """
 
     for var in group.variables.values():
+
         # Generate VariableInfo map
         info = VariableInfo(var)
         var_path = get_group_path(group, var.name)
