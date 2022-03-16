@@ -16,3 +16,4 @@ There are comprehensive unit tests for Concise. The tests can be run as follows:
 ```shell script
 poetry run pytest tests/
 ```
+
