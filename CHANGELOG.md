@@ -16,7 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     Handle empty granule files.
   - [issue-14](https://github.com/podaac/concise/issues/14): Added support 
     for concatenating granules together that have different variables
+  - Added `timeout` option to `cmr-umm-updater`
 ### Changed 
+  - Upgraded `cmr-umm-updater` to 0.2.1
 ### Deprecated 
 ### Removed 
 ### Fixed 
