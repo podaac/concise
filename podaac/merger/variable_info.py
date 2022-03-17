@@ -42,6 +42,9 @@ class VariableInfo:
 
         self.__dict__[name] = value
 
+    def __str__(self):
+        return f"name:{self.name} dim_order:{self.dim_order} fill_value:{self.fill_value} datatype:{self.datatype} group_path:{self.group_path}"
+
     def __eq__(self, other):
         return (
             self.dim_order == other.dim_order and

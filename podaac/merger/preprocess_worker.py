@@ -231,7 +231,14 @@ def _run_multi_core(file_list, process_count):
         if var_info is None:
             var_info = result['var_info']
         elif var_info != result['var_info']:
-            raise RuntimeError('Variable schemas are inconsistent between granules')
+            if set(var_info.keys()).difference(result['var_info']):
+                # If not all variables match, only compare variables that intersect
+                intersecting_vars = set(var_info).intersection(result['var_info'])
+                if list(
+                        map(var_info.get, intersecting_vars)
+                ) != list(map(result['var_info'].get, intersecting_vars)):
+                    raise RuntimeError('Variable schemas are inconsistent between granules')
+                var_info.update(result['var_info'])
 
         # The following data requires accumulation methods
         merge_max_dims(max_dims, result['max_dims'])
@@ -417,6 +424,7 @@ def get_variable_data(group, var_info, var_metadata):
     """
 
     for var in group.variables.values():
+
         # Generate VariableInfo map
         info = VariableInfo(var)
         var_path = get_group_path(group, var.name)

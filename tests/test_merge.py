@@ -13,6 +13,18 @@ import importlib_metadata
 from podaac.merger import merge
 
 
+def is_file_empty(parent_group):
+    """
+    Function to test if a all variable size in a dataset is 0
+    """
+
+    for var in parent_group.variables.values():
+        if var.size != 0:
+            return False
+    for child_group in parent_group.groups.values():
+        return is_file_empty(child_group)      
+    return True
+
 @pytest.mark.usefixtures("pass_options")
 class TestMerge(TestCase):
     @classmethod
@@ -65,7 +77,8 @@ class TestMerge(TestCase):
             if isinstance(origin_attr, np.ndarray):
                 self.assertTrue(np.array_equal(merged_attr, origin_attr))
             else:
-                self.assertEqual(merged_attr, origin_attr)
+                if attr != "history_json":
+                    self.assertEqual(merged_attr, origin_attr)
 
     def verify_variables(self, merged_group, origin_group, subset_index, both_merged):
         for var in origin_group.variables:
@@ -89,13 +102,19 @@ class TestMerge(TestCase):
             else:
                 self.assertTrue(np.array_equal(merged_data, origin_data, equal_nan=True))
 
-    def verify_files(self, dataset, input_files):
+    def verify_files(self, dataset, input_files, data_dir):
+        data_path = self.__test_data_path.joinpath(data_dir)
+
         subset_files = list(dataset.variables['subset_files'])
-
+        output_files = []
         for file in input_files:
-            self.assertIn(file.name, subset_files)
-
-        return subset_files
+            with nc.Dataset(data_path.joinpath(file)) as dataset:
+                res = is_file_empty(dataset)
+                if res is False:
+                    self.assertIn(file.name, subset_files)
+                    output_files.append(file)
+        return output_files
+        # return subset_files
 
     def verify_groups(self, merged_group, origin_group, subset_index, both_merged=False):
         self.verify_dims(merged_group, origin_group, both_merged)
@@ -115,7 +134,7 @@ class TestMerge(TestCase):
         merge.merge_netcdf_files(input_files, output_path, process_count=process_count)
 
         merged_dataset = nc.Dataset(output_path)
-        file_map = self.verify_files(merged_dataset, input_files)
+        file_map = self.verify_files(merged_dataset, input_files, data_dir)
 
         for i, file in enumerate(file_map):
             origin_dataset = nc.Dataset(data_path.joinpath(file))
@@ -167,6 +186,9 @@ class TestMerge(TestCase):
     def test_subgroup_merge_multi(self):
         self.run_verification('subgroups', 'subgroup_merge_multi.nc')
 
+    def test_empty_data_merge_multi(self):
+        self.run_verification('empty_data', 'empty_data_merge_multi.nc')
+
     def test_compare_java_single(self):
         self.run_java_verification('python_merge_single.nc', 1)
 
@@ -193,7 +215,7 @@ class TestMerge(TestCase):
 
         # Single core mode
         merge.merge_netcdf_files(
-            input_files=input_files,
+            original_input_files=input_files,
             output_file=self.__output_path.joinpath(output_name_single),
             process_count=1
         )
@@ -204,7 +226,7 @@ class TestMerge(TestCase):
 
         # Multi core mode
         merge.merge_netcdf_files(
-            input_files=input_files,
+            original_input_files=input_files,
             output_file=self.__output_path.joinpath(output_name_multi),
             process_count=2
         )
@@ -219,7 +241,7 @@ class TestMerge(TestCase):
         data_path = self.__test_data_path.joinpath('l2ss_py_output')
         input_files = list(data_path.iterdir())
         merge.merge_netcdf_files(
-            input_files=input_files,
+            original_input_files=input_files,
             output_file=self.__output_path.joinpath(output_name_single),
             process_count=1
         )
@@ -230,3 +252,37 @@ class TestMerge(TestCase):
         assert history_json[0]['program'] == 'l2ss-py'
         assert history_json[1]['program'] == 'l2ss-py'
         assert history_json[2]['program'] == 'concise'
+
+    def test_mismatched_vars(self):
+        """
+        Some collections have granules with mismatched vars. For
+        example, MODIS_T-JPL-L2P-v2019.0 has day/night granules where
+        the variables are slightly different. Test the union of all
+        variables across all input granules is present in the final
+        merged granule.
+        """
+        data_path = self.__test_data_path.joinpath('var_mismatch')
+        input_files = list(data_path.iterdir())
+        output_path_single = self.__output_path.joinpath('test_mismatched_vars_single.nc')
+        output_path_multi = self.__output_path.joinpath('test_mismatched_vars_multi.nc')
+
+        expected_vars = {
+            'dt_analysis', 'lon', 'chlorophyll_a', 'K_490', 'lat', 'quality_level',
+            'sea_surface_temperature', 'wind_speed', 'sses_standard_deviation_4um',
+            'quality_level_4um', 'sses_bias_4um', 'sea_surface_temperature_4um',
+            'sses_standard_deviation', 'sst_dtime', 'time', 'sses_bias', 'l2p_flags'
+        }
+
+        # Test single process merge
+        merge.merge_netcdf_files(input_files, output_path_single, process_count=1)
+        dataset = nc.Dataset(output_path_single)
+        actual_vars = set(dataset.variables.keys())
+        actual_vars.remove('subset_files')
+        assert actual_vars == expected_vars
+
+        # Test multi-process merge
+        merge.merge_netcdf_files(input_files, output_path_multi, process_count=2)
+        dataset = nc.Dataset(output_path_multi)
+        actual_vars = set(dataset.variables.keys())
+        actual_vars.remove('subset_files')
+        assert actual_vars == expected_vars
