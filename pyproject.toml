@@ -26,10 +26,10 @@ pytest = "^6.1"
 flake8 = "^3.8"
 pytest-cov = "^2.10"
 pylint = "^2.6"
-Sphinx = "^3.3"
+Sphinx = "^4.0"
 requests = "^2.25.1"
 importlib-metadata = "^4.6.3"
-sphinx-rtd-theme = "^0.5.2"
+sphinx-rtd-theme = "^1.0"
 
 [tool.poetry.scripts]
 merge = 'podaac.merger.merge_cli:main'
