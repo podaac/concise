@@ -10,7 +10,7 @@ from uuid import uuid4
 
 from harmony.adapter import BaseHarmonyAdapter
 from harmony.util import bbox_to_geometry, stage
-from pystac import Catalog, Item, read_file
+from pystac import Catalog, Item
 from pystac.item import Asset
 
 from podaac.merger.merge import merge_netcdf_files
