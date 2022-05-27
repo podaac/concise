@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+ - HARMONY-1178
+   - Handle paged STAC catalogs
 ### Changed 
+   - Upgraded `harmony-service-lib` to 1.0.16
 ### Deprecated 
 ### Removed 
 ### Fixed 

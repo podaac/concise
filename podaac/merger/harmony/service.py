@@ -1,7 +1,6 @@
 """A Harmony service wrapper around the Concise module"""
 
 from datetime import datetime, timezone
-from gettext import Catalog
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from shutil import copyfile
@@ -59,10 +58,8 @@ class ConciseService(BaseHarmonyAdapter):
         result = catalog.clone()
         result.id = str(uuid4())
         result.clear_children()
-       
+
         # Get all the items from the catalog, including from child or linked catalogs
-        # TODO - if possible this should be changed to retrieve the items one at a time instead
-        # of all at once, but that's not the way the concatenation code is currently written
         items = list(self.get_all_catalog_items(catalog))
 
         # Quick return if catalog contains no items
