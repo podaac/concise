@@ -1,0 +1,36 @@
+{
+  "stac_version": "1.0.0-beta.2",
+  "stac_extensions": [],
+  "id": "cfc32383-cfd1-4e43-8d5f-55f539b6fa59",
+  "links": [
+    {
+      "rel": "harmony_source",
+      "href": "https://cmr.uat.earthdata.nasa.gov/search/concepts/C1234088182-EEDTEST"
+    },
+    {
+      "rel": "item",
+      "href": "./granule_0_0_0000000.json",
+      "type": "application/json",
+      "title": "2020_01_01_7f00ff_global"
+    },
+    {
+      "rel": "item",
+      "href": "./granule_0_0_0000001.json",
+      "type": "application/json",
+      "title": "2020_01_02_3200ff_global"
+    },
+    {
+      "rel": "item",
+      "href": "./granule_0_0_0000002.json",
+      "type": "application/json",
+      "title": "2020_01_03_0019ff_global"
+    },
+    {
+      "rel": "next",
+      "href": "tests/data/harmony/source/catalog1.json",
+      "type": "application/json",
+      "title": "Next page"
+    }
+  ],
+  "description": "CMR Granules for C1234088182-EEDTEST batch 1"
+}
