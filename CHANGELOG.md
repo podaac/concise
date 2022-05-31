@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Handle paged STAC catalogs
 ### Changed 
 - Updated dependency versions
+- [issue-31](https://github.com/podaac/l2ss-py/issues/88): Build pipeline manually pushes tag rather than use action-push-tag
 ### Deprecated 
 ### Removed
 ### Fixed
