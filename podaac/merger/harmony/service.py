@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from harmony.adapter import BaseHarmonyAdapter
 from harmony.util import bbox_to_geometry, stage
-from pystac import Item
+from pystac import Catalog, Item
 from pystac.item import Asset
 
 from podaac.merger.merge import merge_netcdf_files
@@ -39,7 +39,7 @@ class ConciseService(BaseHarmonyAdapter):
 
         return (self.message, self.process_catalog(self.catalog))
 
-    def process_catalog(self, catalog):
+    def process_catalog(self, catalog: Catalog):
         """
         Recursively process a catalog and all its children. Adapted from
         BaseHarmonyAdapter._process_catalog_recursive to specfifically
@@ -57,13 +57,10 @@ class ConciseService(BaseHarmonyAdapter):
         """
         result = catalog.clone()
         result.id = str(uuid4())
-
-        # Recursively process all sub-catalogs
-        children = catalog.get_children()
         result.clear_children()
-        result.add_children([self.process_catalog(child) for child in children])
 
-        items = list(catalog.get_items())
+        # Get all the items from the catalog, including from child or linked catalogs
+        items = list(self.get_all_catalog_items(catalog))
 
         # Quick return if catalog contains no items
         if len(items) == 0:

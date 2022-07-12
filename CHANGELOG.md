@@ -9,9 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 ### Changed 
 ### Deprecated 
-### Removed 
-### Fixed 
+### Removed
+### Fixed
 ### Security
+
+## [0.4.0]
+
+### Added
+ - HARMONY-1178
+   - Handle paged STAC catalogs
+### Changed 
+- Updated dependency versions
+- [issue-31](https://github.com/podaac/l2ss-py/issues/88): Build pipeline manually pushes tag rather than use action-push-tag
+### Deprecated 
+### Removed
+### Fixed
+### Security
+- Changed CLI step in build action to use snyk monitor so that report is uploaded to SNYK podaac org
 
 ## [0.3.0]
 
