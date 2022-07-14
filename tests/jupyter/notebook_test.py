@@ -1,4 +1,3 @@
-import cmr
 import papermill as pm
 import json
 import os
@@ -76,7 +75,7 @@ def run():
                     collections.append(line.strip())
 
 
-    notebook = "./notebooks/harmony_concise_api_test.ipynb"
+    notebook = "./tests/jupyter/notebooks/harmony_concise_api_test.ipynb"
     notebook_path = os.path.dirname(notebook)
     notebook_name = os.path.basename(notebook)
 
