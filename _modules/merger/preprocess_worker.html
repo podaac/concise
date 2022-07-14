@@ -1,72 +1,34 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>merger.preprocess_worker &mdash; podaac-concise 0.2.0a2 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>merger.preprocess_worker &mdash; podaac-concise 0.5.0a1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
-    
+    <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../../index.html" class="icon icon-home"> podaac-concise
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                0.2.0a2
+                0.5.0a1
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -74,92 +36,47 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">podaac</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">podaac-concise</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="../index.html">Module code</a> &raquo;</li>
-        
       <li>merger.preprocess_worker</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <h1>Source code for merger.preprocess_worker</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Preprocessing methods and the utilities to automagically run them in single-thread/multiprocess modes&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Manager</span><span class="p">,</span> <span class="n">Process</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">queue</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Manager</span><span class="p">,</span> <span class="n">Process</span>
+
+<span class="kn">import</span> <span class="nn">importlib_metadata</span>
 <span class="kn">import</span> <span class="nn">netCDF4</span> <span class="k">as</span> <span class="nn">nc</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -228,6 +145,54 @@
                 <span class="n">merged_attrs</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># mark as inconsistent</span></div>
 
 
+<div class="viewcode-block" id="construct_history"><a class="viewcode-back" href="../../merger.html#merger.preprocess_worker.construct_history">[docs]</a><span class="k">def</span> <span class="nf">construct_history</span><span class="p">(</span><span class="n">input_files</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct history JSON entry for this concatenation operation</span>
+<span class="sd">    https://wiki.earthdata.nasa.gov/display/TRT/In-File+Provenance+Metadata+-+TRT-42</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_files : list</span>
+<span class="sd">        List of input files</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        History JSON constructed for this concat operation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">base_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">,</span> <span class="n">input_files</span><span class="p">))</span>
+    <span class="n">history_json</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;date_time&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+        <span class="s2">&quot;derived_from&quot;</span><span class="p">:</span> <span class="n">base_names</span><span class="p">,</span>
+        <span class="s2">&quot;program&quot;</span><span class="p">:</span> <span class="s1">&#39;concise&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="n">importlib_metadata</span><span class="o">.</span><span class="n">distribution</span><span class="p">(</span><span class="s1">&#39;podaac-concise&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+        <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;input_files=</span><span class="si">{</span><span class="n">input_files</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;program_ref&quot;</span><span class="p">:</span> <span class="s2">&quot;https://cmr.earthdata.nasa.gov:443/search/concepts/S2153799015-POCLOUD&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;https://harmony.earthdata.nasa.gov/schemas/history/0.1.0/history-v0.1.0.json&quot;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">history_json</span></div>
+
+
+<div class="viewcode-block" id="retrieve_history"><a class="viewcode-back" href="../../merger.html#merger.preprocess_worker.retrieve_history">[docs]</a><span class="k">def</span> <span class="nf">retrieve_history</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve history_json field from NetCDF dataset, if it exists</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dataset : netCDF4.Dataset</span>
+<span class="sd">        NetCDF Dataset representing a single granule</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        history_json field</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;history_json&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">history_json</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">getncattr</span><span class="p">(</span><span class="s1">&#39;history_json&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">history_json</span><span class="p">)</span></div>
+
+
 <span class="k">def</span> <span class="nf">_run_single_core</span><span class="p">(</span><span class="n">file_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Run the granule preprocessing in the current thread/single-core mode</span>
@@ -247,13 +212,21 @@
     <span class="n">max_dims</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">var_metadata</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">group_metadata</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">history_json</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">file_list</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset</span><span class="p">:</span>
             <span class="n">dataset</span><span class="o">.</span><span class="n">set_auto_maskandscale</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">process_groups</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">group_list</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="n">group_metadata</span><span class="p">,</span> <span class="n">var_metadata</span><span class="p">,</span> <span class="n">var_info</span><span class="p">)</span>
+            <span class="n">history_json</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">retrieve_history</span><span class="p">(</span><span class="n">dataset</span><span class="p">))</span>
 
     <span class="n">group_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>  <span class="c1"># Ensure insertion order doesn&#39;t matter between granules</span>
+
+    <span class="n">history_json</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">construct_history</span><span class="p">(</span><span class="n">file_list</span><span class="p">))</span>
+    <span class="n">group_metadata</span><span class="p">[</span><span class="n">group_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s1">&#39;history_json&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+        <span class="n">history_json</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="nb">str</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="p">{</span>
         <span class="s1">&#39;group_list&#39;</span><span class="p">:</span> <span class="n">group_list</span><span class="p">,</span>
@@ -313,6 +286,7 @@
     <span class="n">max_dims</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">var_metadata</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">group_metadata</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">history_json</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
         <span class="c1"># The following data should be consistent between granules and</span>
@@ -326,12 +300,28 @@
         <span class="k">if</span> <span class="n">var_info</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">var_info</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;var_info&#39;</span><span class="p">]</span>
         <span class="k">elif</span> <span class="n">var_info</span> <span class="o">!=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;var_info&#39;</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Variable schemas are inconsistent between granules&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">var_info</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;var_info&#39;</span><span class="p">]):</span>
+                <span class="c1"># If not all variables match, only compare variables that intersect</span>
+                <span class="n">intersecting_vars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">var_info</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;var_info&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="nb">list</span><span class="p">(</span>
+                        <span class="nb">map</span><span class="p">(</span><span class="n">var_info</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="n">intersecting_vars</span><span class="p">)</span>
+                <span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;var_info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="n">intersecting_vars</span><span class="p">)):</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Variable schemas are inconsistent between granules&#39;</span><span class="p">)</span>
+                <span class="n">var_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;var_info&#39;</span><span class="p">])</span>
 
         <span class="c1"># The following data requires accumulation methods</span>
         <span class="n">merge_max_dims</span><span class="p">(</span><span class="n">max_dims</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;max_dims&#39;</span><span class="p">])</span>
         <span class="n">merge_metadata</span><span class="p">(</span><span class="n">var_metadata</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;var_metadata&#39;</span><span class="p">])</span>
         <span class="n">merge_metadata</span><span class="p">(</span><span class="n">group_metadata</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;group_metadata&#39;</span><span class="p">])</span>
+
+        <span class="c1"># Merge history_json entries from input files</span>
+        <span class="n">history_json</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;history_json&#39;</span><span class="p">])</span>
+
+    <span class="n">history_json</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">construct_history</span><span class="p">(</span><span class="n">file_list</span><span class="p">))</span>
+    <span class="n">group_metadata</span><span class="p">[</span><span class="n">group_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s1">&#39;history_json&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+        <span class="n">history_json</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="nb">str</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="p">{</span>
         <span class="s1">&#39;group_list&#39;</span><span class="p">:</span> <span class="n">group_list</span><span class="p">,</span>
@@ -364,6 +354,7 @@
     <span class="n">var_info</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">var_metadata</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">group_metadata</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">history_json</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">while</span> <span class="ow">not</span> <span class="n">in_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
         <span class="k">try</span><span class="p">:</span>
@@ -375,6 +366,7 @@
         <span class="k">with</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset</span><span class="p">:</span>
             <span class="n">dataset</span><span class="o">.</span><span class="n">set_auto_maskandscale</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">process_groups</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">group_list</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="n">group_metadata</span><span class="p">,</span> <span class="n">var_metadata</span><span class="p">,</span> <span class="n">var_info</span><span class="p">)</span>
+            <span class="n">history_json</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">retrieve_history</span><span class="p">(</span><span class="n">dataset</span><span class="p">))</span>
 
     <span class="n">group_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>  <span class="c1"># Ensure insertion order doesn&#39;t matter between granules</span>
 
@@ -384,7 +376,8 @@
             <span class="s1">&#39;max_dims&#39;</span><span class="p">:</span> <span class="n">max_dims</span><span class="p">,</span>
             <span class="s1">&#39;var_info&#39;</span><span class="p">:</span> <span class="n">var_info</span><span class="p">,</span>
             <span class="s1">&#39;var_metadata&#39;</span><span class="p">:</span> <span class="n">var_metadata</span><span class="p">,</span>
-            <span class="s1">&#39;group_metadata&#39;</span><span class="p">:</span> <span class="n">group_metadata</span>
+            <span class="s1">&#39;group_metadata&#39;</span><span class="p">:</span> <span class="n">group_metadata</span><span class="p">,</span>
+            <span class="s1">&#39;history_json&#39;</span><span class="p">:</span> <span class="n">history_json</span>
         <span class="p">})</span>
 
 
@@ -500,6 +493,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">group</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+
         <span class="c1"># Generate VariableInfo map</span>
         <span class="n">info</span> <span class="o">=</span> <span class="n">VariableInfo</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
         <span class="n">var_path</span> <span class="o">=</span> <span class="n">get_group_path</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -518,46 +512,30 @@
 </pre></div>
 
            </div>
-           
           </div>
           <footer>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright .
-
-    </p>
+    <p>&#169; Copyright .</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
