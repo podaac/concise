@@ -1,0 +1,29 @@
+# This is the main build pipeline that verifies and publishes the software
+name: Jupyter Test
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  # First job in the workflow installs and verifies the software
+  build:
+    name: Test Execution
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Create prerequisites
+        run: |
+          mkdir current_project
+          touch current_project/test_in.txt
+          echo "ASCATC-L2-Coastal" > current_project/test_in.txt
+          mkdir tests/jupyter/notebooks/output
+      - name: Run Jupyter notebook
+        run: |
+          python3 "./tests/jupyter/notebook_test.py" -n "./tests/jupyter/notebooks/harmony_concise_api_test.ipynb" -e uat -i ./current_project/test_in.txt -o ./tests/jupyter/notebooks//output
+     
