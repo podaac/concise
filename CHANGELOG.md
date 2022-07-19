@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 ### Changed 
+- [issues/34](https://github.com/podaac/concise/issues/34): harmony-service-lib-py version updated to ^1.0.20 to support reading/writing STAC objects to/from S3
 ### Deprecated 
 ### Removed
 ### Fixed
