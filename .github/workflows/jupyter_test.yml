@@ -23,6 +23,9 @@ jobs:
           touch current_project/test_in.txt
           echo "ASCATC-L2-Coastal" > current_project/test_in.txt
           mkdir tests/jupyter/notebooks/output
+      - name: Install dependencies
+        run: |
+          pip install papermill
       - name: Run Jupyter notebook
         run: |
           python3 "./tests/jupyter/notebook_test.py" -n "./tests/jupyter/notebooks/harmony_concise_api_test.ipynb" -e uat -i ./current_project/test_in.txt -o ./tests/jupyter/notebooks//output
