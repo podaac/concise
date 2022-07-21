@@ -19,9 +19,9 @@ class Venue(Enum):
 
         if label.lower() in ["uat", "ngap_uat"]:
             return Venue.UAT
-        elif label.lower() in ["ops", "ngap_ops", "prod"]:
+        if label.lower() in ["ops", "ngap_ops", "prod"]:
             return Venue.OPS
-        elif label.lower() in ["sit", "ngap_sit"]:
+        if label.lower() in ["sit", "ngap_sit"]:
             return Venue.SIT
         else:
-            raise NotImplemented(f'No matching set up for env value "{label}"!')
+            raise NotImplementedError(f'No matching set up for env value "{label}"!')

@@ -9,7 +9,7 @@ class CumulusAPI():
     Class for Cumulus API calls
     """
 
-    def get_collections(token:str, venue:Venue, provider:str="POCUMULUS") -> list:
+    def get_collections(self, token:str, venue:Venue, provider:str="POCUMULUS") -> list:
         """
         Function to get the collections from cumulus
         """
@@ -41,7 +41,7 @@ class CumulusAPI():
         return response
 
 
-    def get_collection_as_list(token:str, venue:Venue, provider:str="POCUMULUS") -> list:
+    def get_collection_as_list(self, token:str, venue:Venue, provider:str="POCUMULUS") -> list:
         """
         Function to get the collections from cumulusvand convert it into a list
         """
