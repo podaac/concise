@@ -2,6 +2,7 @@
 
 from enum import Enum
 
+
 class Venue(Enum):
     """
     Venue or Environment enum

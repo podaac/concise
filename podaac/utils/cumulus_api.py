@@ -4,12 +4,13 @@ import requests
 
 from podaac.utils.enums import Venue
 
+
 class CumulusAPI():
     """
     Class for Cumulus API calls
     """
 
-    def get_collections(self, token:str, venue:Venue, provider:str="POCUMULUS") -> list:
+    def get_collections(self, token: str, venue: Venue, provider: str = "POCUMULUS") -> list:
         """
         Function to get the collections from cumulus
         """
@@ -27,11 +28,11 @@ class CumulusAPI():
 
         custom_header = {
             "Cmr-pretty": "true",
-            "Authorization": f"{token}" }
+            "Authorization": f"{token}"}
 
         response = requests.get(
-            url = url,
-            headers = custom_header)
+            url=url,
+            headers=custom_header)
 
         print(f"Response: {response.status_code}")
         if response.status_code != 200:
@@ -40,8 +41,7 @@ class CumulusAPI():
 
         return response
 
-
-    def get_collection_as_list(self, token:str, venue:Venue, provider:str="POCUMULUS") -> list:
+    def get_collection_as_list(self, token: str, venue: Venue, provider: str = "POCUMULUS") -> list:
         """
         Function to get the collections from cumulusvand convert it into a list
         """
