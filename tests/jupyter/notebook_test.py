@@ -72,7 +72,7 @@ def run():
     fails = []
 
     venue = Venue.from_str(environment)
-    collections = Collections.GetCollectionAsList(token, venue)
+    collections = CumulusAPI.GetCollectionAsList(token, venue)
     for collection in collections:
 
         try:
