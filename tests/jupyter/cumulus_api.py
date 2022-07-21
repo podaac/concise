@@ -2,7 +2,7 @@ import requests
 
 from tests.jupyter.enums import Venue
 
-class Collections():
+class CumulusAPI():
 
     def GetCollections(token:str, venue:Venue, provider:str="POCUMULUS") -> list:
         print(f"\r\nGetting Collections from Cumulus...\r\n")

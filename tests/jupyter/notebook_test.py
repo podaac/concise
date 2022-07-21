@@ -3,7 +3,7 @@ import json
 import os
 import argparse
 
-from tests.jupyter.collections import Collections
+from tests.jupyter.cumulus_api import CumulusAPI
 from tests.jupyter.enums import Venue
 
 
