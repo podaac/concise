@@ -7,11 +7,11 @@ on:
     # Inputs the worklow requests
     inputs:
       # Launchpad token required to access collections list
-      token:
-        type: string
-        required: true
-        description: 'Launchpad token's json file name, token required to access the collections'
-        default: './launchpad_token.json'
+      # token:
+      #   type: string
+      #   required: true
+      #   description: 'Launchpad token's json file name, token required to access the collections'
+      #   default: './launchpad_token.json'
       environment:
         type: string
         required: true
@@ -38,5 +38,5 @@ jobs:
           pip install papermill
       - name: Run Jupyter notebook
         run: |
-          python3 "./tests/jupyter/notebook_test.py" -n "./tests/jupyter/notebooks/harmony_concise_api_test.ipynb" -e ${{ github.event.inputs.environment }} -t ${{ github.event.inputs.token }} -o ./tests/jupyter/notebooks/output
+          python3 "./tests/jupyter/notebook_test.py" -n "./tests/jupyter/notebooks/harmony_concise_api_test.ipynb" -e ${{ github.event.inputs.environment }} -t './launchpad_token.json' -o ./tests/jupyter/notebooks/output
      
