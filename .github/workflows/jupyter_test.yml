@@ -4,17 +4,17 @@ name: Jupyter Test
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-  # Inputs the worklow requests
-  inputs:
-    # Launchpad token required to access collections list
-    token:
-      required: true
-      description: 'Launchpad token's json file name, token required to access the collections'
-      default: './launchpad_token.json'
-    environment:
-      required: true
-      description: 'The environment to run the workflow against'
-      default: 'uat'
+    # Inputs the worklow requests
+    inputs:
+      # Launchpad token required to access collections list
+      token:
+        required: true
+        description: 'Launchpad token's json file name, token required to access the collections'
+        default: './launchpad_token.json'
+      environment:
+        required: true
+        description: 'The environment to run the workflow against'
+        default: 'uat'
 
 jobs:
   # First job in the workflow installs and verifies the software
