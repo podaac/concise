@@ -4,6 +4,17 @@ name: Jupyter Test
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+  # Inputs the worklow requests
+  inputs:
+    # Launchpad token required to access collections list
+    token:
+      required: true
+      description: 'Launchpad token's json file name, token required to access the collections'
+      default: './launchpad_token.json'
+    environment:
+      required: true
+      description: 'The environment to run the workflow against'
+      default: 'uat'
 
 jobs:
   # First job in the workflow installs and verifies the software
@@ -19,14 +30,11 @@ jobs:
           python-version: 3.9
       - name: Create prerequisites
         run: |
-          mkdir current_project
-          touch current_project/test_in.txt
-          echo "ASCATC-L2-Coastal" > current_project/test_in.txt
           mkdir tests/jupyter/notebooks/output
       - name: Install dependencies
         run: |
           pip install papermill
       - name: Run Jupyter notebook
         run: |
-          python3 "./tests/jupyter/notebook_test.py" -n "./tests/jupyter/notebooks/harmony_concise_api_test.ipynb" -e uat -i ./current_project/test_in.txt -o ./tests/jupyter/notebooks//output
+          python3 "./tests/jupyter/notebook_test.py" -n "./tests/jupyter/notebooks/harmony_concise_api_test.ipynb" -e ${{ github.event.inputs.environment }} -t ${{ github.event.inputs.token }} -o ./tests/jupyter/notebooks/output
      

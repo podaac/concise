@@ -3,6 +3,10 @@ import json
 import os
 import argparse
 
+from tests.jupyter.collections import Collections
+from tests.jupyter.enums import Venue
+
+
 def parse_args():
     """
     Parses the program arguments
@@ -16,12 +20,6 @@ def parse_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
-    parser.add_argument('-c', '--collections',
-                        help='List of collection test',
-                        required=False,
-                        metavar='',
-                        type=str)
-
     parser.add_argument('-e', '--env',
                         help='CMR environment used to pull results from.',
                         required=True,
@@ -33,9 +31,9 @@ def parse_args():
                         required=True,
                         metavar='')
 
-    parser.add_argument('-i', '--input_file',
-                        help='File of json collections',
-                        required=False,
+    parser.add_argument('-t', '--token',
+                        help='Launchpad token json file for collections',
+                        required=True,
                         metavar='')
 
     parser.add_argument('-o', '--output_path',
@@ -55,44 +53,33 @@ def run():
     """
 
     _args = parse_args()
-
-    collection_json = _args.collections
     environment = _args.env
     notebook = _args.notebook
-    input_file = _args.input_file
-
-    if collection_json:
-        collections = json.loads(collection_json)
-    if input_file:
-        with open(_args.input_file) as json_data:
-            try:
-                collections = json.load(json_data)
-            except ValueError:
-                collections = []
-                json_data.seek(0)
-                lines = json_data.readlines()
-                for line in lines:
-                    collections.append(line.strip())
-
+    tokenFile = _args.token
+    output_location = _args.output_path if _args.output_path  else '.'
 
     notebook = "./tests/jupyter/notebooks/harmony_concise_api_test.ipynb"
     notebook_path = os.path.dirname(notebook)
     notebook_name = os.path.basename(notebook)
 
+    jsonContent = json.loads(tokenFile)
+    if "token" in jsonContent.keys():
+        token = jsonContent['token']
+    else:
+        raise Exception(f"Missing field 'token'!\r\nCurrent fields: {jsonContent.keys()}")
+
     success = []
     fails = []
 
-    venue = "prod"
-    if environment == "uat":
-        venue = "uat"
-
+    venue = Venue.from_str(environment)
+    collections = Collections.GetCollectionAsList(token, venue)
     for collection in collections:
 
         try:
             print(collection)
             pm.execute_notebook(
                notebook,
-               "{}/output/{}_{}_output_{}".format(notebook_path, collection, environment, notebook_name),
+               f"{notebook_path}/output/{collection}_{environment}_output_{notebook_name}",
                parameters=dict(collection=collection, venue=venue)
             )
             success.append(collection)
@@ -100,9 +87,10 @@ def run():
             print(ex)
             fails.append(collection)
 
-    if _args.output_path:
-        success_outfile = f'{_args.output_path}/{_args.env}_success.txt'
-        fail_outfile = f'{_args.output_path}/{_args.env}_fail.txt'
+    # Create output files
+    if output_location:
+        success_outfile = f'{output_location}/{_args.env}_success.txt'
+        fail_outfile = f'{output_location}/{_args.env}_fail.txt'
 
         if success:
             with open(success_outfile, 'w') as the_file:
