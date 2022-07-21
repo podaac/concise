@@ -23,5 +23,4 @@ class Venue(Enum):
             return Venue.OPS
         if label.lower() in ["sit", "ngap_sit"]:
             return Venue.SIT
-        else:
-            raise NotImplementedError(f'No matching set up for env value "{label}"!')
+        raise NotImplementedError(f'No matching set up for env value "{label}"!')
