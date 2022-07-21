@@ -8,10 +8,12 @@ on:
     inputs:
       # Launchpad token required to access collections list
       token:
+        type: string
         required: true
         description: 'Launchpad token's json file name, token required to access the collections'
         default: './launchpad_token.json'
       environment:
+        type: string
         required: true
         description: 'The environment to run the workflow against'
         default: 'uat'
