@@ -23,7 +23,7 @@ def parse_args():
     parser.add_argument('-e', '--env',
                         help='CMR environment used to pull results from.',
                         required=True,
-                        choices=["uat", "ops"],
+                        choices=["uat", "ops", "ngap_uat", "ngap_ops"],
                         metavar='uat or ops')
 
     parser.add_argument('-n', '--notebook',
