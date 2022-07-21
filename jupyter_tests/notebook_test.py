@@ -3,8 +3,8 @@ import json
 import os
 import argparse
 
-from tests.jupyter.cumulus_api import CumulusAPI
-from tests.jupyter.enums import Venue
+from podaac.utils.cumulus_api import CumulusAPI
+from podaac.utils.enums import Venue
 
 
 def parse_args():

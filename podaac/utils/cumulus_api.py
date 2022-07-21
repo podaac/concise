@@ -1,6 +1,6 @@
 import requests
 
-from tests.jupyter.enums import Venue
+from podaac.utils.enums import Venue
 
 class CumulusAPI():
 
@@ -34,7 +34,7 @@ class CumulusAPI():
 
     def GetCollectionAsList(token:str, venue:Venue, provider:str="POCUMULUS") -> list:
         collections = []
-        response = Collections.GetCollections(token, venue, provider)
+        response = CumulusAPI.GetCollections(token, venue, provider)
         data_dict = response.json()
 
         # Confirm if access is successful
