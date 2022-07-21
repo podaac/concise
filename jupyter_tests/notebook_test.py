@@ -3,7 +3,8 @@ import json
 import os
 import argparse
 
-from podaac.utils.cumulus_api import CumulusAPI
+
+from podaac.utils import CumulusAPI
 from podaac.utils.enums import Venue
 
 
@@ -72,7 +73,7 @@ def run():
     fails = []
 
     venue = Venue.from_str(environment)
-    collections = CumulusAPI.GetCollectionAsList(token, venue)
+    collections = CumulusAPI.get_collection_as_list(token, venue)
     for collection in collections:
 
         try:
