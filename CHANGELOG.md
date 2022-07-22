@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+  - PODAAC-4653
+    - New github action workflow and Jupyter notebook that can be used for testing the concise service via Harmony
+  - PODAAC-4656
+    - Added cmr-association-diff import and usage
+    - Added secret usage to workflow
+    - Added FileHandler class
 ### Changed 
 - [issues/34](https://github.com/podaac/concise/issues/34): harmony-service-lib-py version updated to ^1.0.20 to support reading/writing STAC objects to/from S3
 ### Deprecated 

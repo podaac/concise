@@ -19,14 +19,20 @@ jobs:
           python-version: 3.9
       - name: Create prerequisites
         run: |
-          mkdir current_project
-          touch current_project/test_in.txt
-          echo "ASCATC-L2-Coastal" > current_project/test_in.txt
-          mkdir tests/jupyter/notebooks/output
+          mkdir jupyter_notebooks/output
       - name: Install dependencies
         run: |
-          pip install papermill
-      - name: Run Jupyter notebook
+          pip3 install --upgrade pip
+          pip3 install papermill
+          pip3 install xarray
+          pip3 install git+https://github.com/podaac/cmr-association-diff.git@6193079a14e36f4c9526aa426015c2b6be41f0e2
+      - name: Run CMR Association diff scripts
         run: |
-          python3 "./tests/jupyter/notebook_test.py" -n "./tests/jupyter/notebooks/harmony_concise_api_test.ipynb" -e uat -i ./current_project/test_in.txt -o ./tests/jupyter/notebooks//output
-     
+          cmr_association_diff -e uat -t service -a "cmr/uat_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o "jupyter_notebooks/output/uat_output_json.txt" --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
+          cmr_association_diff -e ops -t service -a "cmr/ops_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o "jupyter_notebooks/output/ops_output_json.txt" --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
+      - name: Run Jupyter notebook on UAT
+        run: |
+          python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e uat -i "jupyter_notebooks/output/uat_output_json.txt" -o "jupyter_notebooks/output"
+      - name: Run Jupyter notebook on OPS
+        run: |
+          python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e ops -i "jupyter_notebooks/output/ops_output_json.txt" -o "jupyter_notebooks/output"
