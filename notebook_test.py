@@ -1,11 +1,10 @@
 import papermill as pm
-import json
-import os
 import argparse
 
+from os import path
 
-from podaac.utils import CumulusAPI
-from podaac.utils.enums import Venue
+from utils import FileHandler
+from utils.enums import Venue
 
 
 def parse_args():
@@ -32,8 +31,8 @@ def parse_args():
                         required=True,
                         metavar='')
 
-    parser.add_argument('-t', '--token',
-                        help='Launchpad token json file for collections',
+    parser.add_argument('-i', '--input_file',
+                        help='File of json collections',
                         required=True,
                         metavar='')
 
@@ -56,24 +55,17 @@ def run():
     _args = parse_args()
     environment = _args.env
     notebook = _args.notebook
-    tokenFile = _args.token
+    inputFile = _args.input_file
     output_location = _args.output_path if _args.output_path  else '.'
 
-    notebook = "./tests/jupyter/notebooks/harmony_concise_api_test.ipynb"
-    notebook_path = os.path.dirname(notebook)
-    notebook_name = os.path.basename(notebook)
-
-    jsonContent = json.loads(tokenFile)
-    if "token" in jsonContent.keys():
-        token = jsonContent['token']
-    else:
-        raise Exception(f"Missing field 'token'!\r\nCurrent fields: {jsonContent.keys()}")
+    notebook_path = path.realpath(path.dirname(notebook))
+    notebook_name = path.basename(notebook)
 
     success = []
     fails = []
 
     venue = Venue.from_str(environment)
-    collections = CumulusAPI.get_collection_as_list(token, venue)
+    collections = FileHandler.get_file_content_list_per_line(inputFile)
     for collection in collections:
 
         try:
@@ -81,7 +73,7 @@ def run():
             pm.execute_notebook(
                notebook,
                f"{notebook_path}/output/{collection}_{environment}_output_{notebook_name}",
-               parameters=dict(collection=collection, venue=venue)
+               parameters=dict(collection=collection, venue=venue.name)
             )
             success.append(collection)
         except Exception as ex:
@@ -90,8 +82,8 @@ def run():
 
     # Create output files
     if output_location:
-        success_outfile = f'{output_location}/{_args.env}_success.txt'
-        fail_outfile = f'{output_location}/{_args.env}_fail.txt'
+        success_outfile = path.realpath(f'{output_location}/{_args.env}_success.txt')
+        fail_outfile = path.realpath(f'{output_location}/{_args.env}_fail.txt')
 
         if success:
             with open(success_outfile, 'w') as the_file:

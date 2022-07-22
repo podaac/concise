@@ -4,20 +4,6 @@ name: Jupyter Test
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-    # Inputs the worklow requests
-    inputs:
-      # Launchpad token required to access collections list
-      tokenfile:
-        type: string
-        required: true
-        description: 'Launchpad token json file name, token required to access the collections'
-        default: './launchpad_token.json'
-      # Environment
-      environment:
-        type: string
-        required: true
-        description: 'The environment to run the workflow against'
-        default: 'uat'
 
 jobs:
   # First job in the workflow installs and verifies the software
@@ -33,11 +19,20 @@ jobs:
           python-version: 3.9
       - name: Create prerequisites
         run: |
-          mkdir jupyter_tests/notebooks/output
+          mkdir jupyter_notebooks/output
       - name: Install dependencies
         run: |
-          pip install papermill
-      - name: Run Jupyter notebook
+          pip3 install --upgrade pip
+          pip3 install papermill
+          pip3 install xarray
+          pip3 install git+https://github.com/podaac/cmr-association-diff.git@6193079a14e36f4c9526aa426015c2b6be41f0e2
+      - name: Run CMR Association diff scripts
         run: |
-          python3 "./jupyter_tests/notebook_test.py" -n "./jupyter_tests/notebooks/harmony_concise_api_test.ipynb" -e ${{ github.event.inputs.environment }} -t ${{ github.event.inputs.tokenfile }} -o ./jupyter_tests/notebooks/output
-     
+          cmr_association_diff -e uat -t service -a "./cmr/uat_associations.txt" -p POCLOUD -n \'PODAAC Concise\' -o "./uat_output_json.txt" --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
+          cmr_association_diff -e ops -t service -a "./cmr/ops_associations.txt" -p POCLOUD -n \'PODAAC Concise\' -o "./ops_output_json.txt" --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
+      - name: Run Jupyter notebook on UAT
+        run: |
+          python3 "notebook_test.py" -n "./jupyter_notebooks/harmony_concise_api_test.ipynb" -e uat -i "./uat_output_json.txt" -o "./jupyter_notebooks/output"
+      - name: Run Jupyter notebook on OPS
+        run: |
+          python3 "notebook_test.py" -n "./jupyter_notebooks/harmony_concise_api_test.ipynb" -e ops -i "./ops_output_json.txt" -o "./jupyter_notebooks/output"
