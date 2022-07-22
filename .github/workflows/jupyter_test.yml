@@ -33,11 +33,11 @@ jobs:
           python-version: 3.9
       - name: Create prerequisites
         run: |
-          mkdir tests/jupyter/notebooks/output
+          mkdir jupyter_tests/notebooks/output
       - name: Install dependencies
         run: |
           pip install papermill
       - name: Run Jupyter notebook
         run: |
-          python3 "./tests/jupyter/notebook_test.py" -n "./tests/jupyter/notebooks/harmony_concise_api_test.ipynb" -e ${{ github.event.inputs.environment }} -t ${{ github.event.inputs.tokenfile }} -o ./tests/jupyter/notebooks/output
+          python3 "./jupyter_tests/notebook_test.py" -n "./jupyter_tests/notebooks/harmony_concise_api_test.ipynb" -e ${{ github.event.inputs.environment }} -t ${{ github.event.inputs.tokenfile }} -o ./jupyter_tests/notebooks/output
      
