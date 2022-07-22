@@ -64,34 +64,35 @@ def run():
     success = []
     fails = []
 
-    venue = Venue.from_str(environment)
-    collections = FileHandler.get_file_content_list_per_line(inputFile)
-    for collection in collections:
+    if path.exists(inputFile):
+        venue = Venue.from_str(environment)
+        collections = FileHandler.get_file_content_list_per_line(inputFile)
+        for collection in collections:
 
-        try:
-            print(collection)
-            pm.execute_notebook(
-               notebook,
-               f"{notebook_path}/output/{collection}_{environment}_output_{notebook_name}",
-               parameters=dict(collection=collection, venue=venue.name)
-            )
-            success.append(collection)
-        except Exception as ex:
-            print(ex)
-            fails.append(collection)
+            try:
+                print(collection)
+                pm.execute_notebook(
+                   notebook,
+                   f"{notebook_path}/output/{collection}_{environment}_output_{notebook_name}",
+                   parameters=dict(collection=collection, venue=venue.name)
+                )
+                success.append(collection)
+            except Exception as ex:
+                print(ex)
+                fails.append(collection)
 
-    # Create output files
-    if output_location:
-        success_outfile = path.realpath(f'{output_location}/{_args.env}_success.txt')
-        fail_outfile = path.realpath(f'{output_location}/{_args.env}_fail.txt')
+        # Create output files
+        if output_location:
+            success_outfile = path.realpath(f'{output_location}/{_args.env}_success.txt')
+            fail_outfile = path.realpath(f'{output_location}/{_args.env}_fail.txt')
 
-        if success:
-            with open(success_outfile, 'w') as the_file:
-                the_file.writelines(x + '\n' for x in success)
+            if success:
+                with open(success_outfile, 'w') as the_file:
+                    the_file.writelines(x + '\n' for x in success)
 
-        if fails:
-            with open(fail_outfile, 'w') as the_file:
-                the_file.writelines(x + '\n' for x in fails)
+            if fails:
+                with open(fail_outfile, 'w') as the_file:
+                    the_file.writelines(x + '\n' for x in fails)
 
 if __name__ == '__main__':
     run()
