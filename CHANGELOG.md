@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 
+## [0.5.0]
+
+### Added
+- New github action workflow and Jupyter notebook that can be used for testing the concise service via Harmony
+### Changed 
+- [issues/34](https://github.com/podaac/concise/issues/34): harmony-service-lib-py version updated to ^1.0.20 to support reading/writing STAC objects to/from S3
+### Deprecated 
+### Removed
+### Fixed
+### Security
+
 ## [0.4.0]
 
 ### Added
