@@ -30,6 +30,12 @@ jobs:
         run: |
           cmr_association_diff -e uat -t service -a "cmr/uat_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o "jupyter_notebooks/output/uat_output_json.txt" --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
           cmr_association_diff -e ops -t service -a "cmr/ops_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o "jupyter_notebooks/output/ops_output_json.txt" --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
+      - name: Set environment variables
+        run: |
+          echo "OPS_USERNAME=${{ secrets.EDL_USER }}" >> $GITHUB_ENV
+          echo "OPS_PASSWORD=${{ secrets.EDL_PASS }}" >> $GITHUB_ENV
+          echo "UAT_USERNAME=${{ secrets.EDL_USER }}" >> $GITHUB_ENV
+          echo "UAT_PASSWORD=${{ secrets.EDL_PASS }}" >> $GITHUB_ENV
       - name: Run Jupyter notebook on UAT
         run: |
           python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e uat -i "jupyter_notebooks/output/uat_output_json.txt" -o "jupyter_notebooks/output"
