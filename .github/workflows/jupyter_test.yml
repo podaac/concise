@@ -26,10 +26,16 @@ jobs:
           echo "OPS_SUCCESS_FILE=ops_success.txt" >> $GITHUB_ENV
           echo "UAT_FAILURE_FILE=uat_fail.txt" >> $GITHUB_ENV
           echo "OPS_FAILURE_FILE=ops_fail.txt" >> $GITHUB_ENV
+      - name: Set environment variables for notebook
+        run: |
+          echo “OPS_USERNAME=${{ secrets.EDL_USER }}” >> $GITHUB_ENV
+          echo “OPS_PASSWORD=${{ secrets.EDL_PASS }}” >> $GITHUB_ENV
+          echo “UAT_USERNAME=${{ secrets.EDL_USER }}” >> $GITHUB_ENV
+          echo “UAT_PASSWORD=${{ secrets.EDL_PASS }}” >> $GITHUB_ENV
       - name: Create prerequisites
         run: |
           mkdir env.OUTPUT_DIR
-          cat 'a' >> env.OUTPUT_DIR/env.UAT_SUCCESS_FILE 
+          echo 'test info' > env.OUTPUT_DIR/env.UAT_SUCCESS_FILE
       - name: Install dependencies
         run: |
           pip3 install --upgrade pip
