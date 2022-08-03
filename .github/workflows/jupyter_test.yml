@@ -60,20 +60,48 @@ jobs:
           echo "::set-output name=FAIL_EXISTS::$(if [ -f env.OUTPUT_DIR/env.UAT_FAILURE_FILE ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=SUCCESS_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_SUCCESS_FILE)"
           echo "::set-output name=FAIL_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_FAILURE_FILE)"
-      - name: Check output
+      - name: Check OPS files
+        id: check_OPS_output_files
         run: |
-          echo "OUTPUT_EXISTS: ${{ steps.check_UAT_output_files.outputs.OUTPUT_EXISTS }}"
-          echo "SUCCESS_EXISTS: ${{ steps.check_UAT_output_files.outputs.SUCCESS_EXISTS }}"
-          echo "FAIL_EXISTS: ${{ steps.check_UAT_output_files.outputs.FAIL_EXISTS }}"
-          echo "SUCCESS_CONTENT: ${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}"
-          echo "FAIL_CONTENT: ${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}"
-      - name: Send report for UAT check
+          echo "::set-output name=OUTPUT_EXISTS::$(if [ -f env.OUTPUT_DIR/env.OPS_OUTPUT_FILE ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=SUCCESS_EXISTS::$(if [ -f env.OUTPUT_DIR/env.OPS_SUCCESS_FILE ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=FAIL_EXISTS::$(if [ -f env.OUTPUT_DIR/env.OPS_FAILURE_FILE ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=SUCCESS_CONTENT::$(cat env.OUTPUT_DIR/env.OPS_SUCCESS_FILE)"
+          echo "::set-output name=FAIL_CONTENT::$(cat env.OUTPUT_DIR/env.OPS_FAILURE_FILE)"
+      - name: Send report for UAT check - SUCCESS
         id: slack
         uses: slackapi/slack-github-action@v1.21.0
-        if: steps.check_UAT_output_files.outputs.OUTPUT_EXISTS == 'true'
+        if: steps.check_UAT_output_files.outputs.OUTPUT_EXISTS == 'true' && steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true'
         with:
           channel-id: 'podaac-tva'
           slack-message: "Successfully ran Concise Notebook on the following collections: steps.check_UAT_output_files.outputs.SUCCESS_CONTENT"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      - name: Send report for UAT check - FAILURE
+        id: slack
+        uses: slackapi/slack-github-action@v1.21.0
+        if: steps.check_UAT_output_files.outputs.OUTPUT_EXISTS == 'true' && steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true'
+        with:
+          channel-id: 'podaac-tva'
+          slack-message: "Failed to run Concise Notebook on the following collections: steps.check_UAT_output_files.outputs.FAIL_CONTENT"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      - name: Send report for OPS check  - SUCCESS
+        id: slack
+        uses: slackapi/slack-github-action@v1.21.0
+        if: steps.check_OPS_output_files.outputs.OUTPUT_EXISTS == 'true' && steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true'
+        with:
+          channel-id: 'podaac-tva'
+          slack-message: "Successfully ran Concise Notebook on the following collections: steps.check_OPS_output_files.outputs.SUCCESS_CONTENT"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      - name: Send report for OPS check  - FAILURE
+        id: slack
+        uses: slackapi/slack-github-action@v1.21.0
+        if: steps.check_OPS_output_files.outputs.OUTPUT_EXISTS == 'true' && steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
+        with:
+          channel-id: 'podaac-tva'
+          slack-message: "Failed to run Concise Notebook on the following collections: steps.check_OPS_output_files.outputs.FAIL_CONTENT"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       - name: Update UAT collections
@@ -98,5 +126,5 @@ jobs:
           cat env.OPS_SUCCESS_FILE >> ./cmr/ops_associations.txt
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          git commit -am "Update uat_associations.txt with new collections"
+          git commit -am "Update ops_associations.txt with new collections"
           git push
