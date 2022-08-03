@@ -60,13 +60,11 @@ jobs:
           echo '::set-output name=FAIL_EXISTS::$(if [ -f env.OUTPUT_DIR/env.UAT_FAILURE_FILE ]; then echo "true"; else echo "false"; fi)'
           echo '::set-output name=SUCCESS_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_SUCCESS_FILE)'
           echo '::set-output name=FAIL_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_FAILURE_FILE)'
-      - name: Temp check values
-        run: |
-          steps.check_UAT_output_files.outputs.OUTPUT_EXISTS
-          steps.check_UAT_output_files.outputs.SUCCESS_EXISTS
-          steps.check_UAT_output_files.outputs.FAIL_EXISTS
-          steps.check_UAT_output_files.outputs.SUCCESS_CONTENT
-          steps.check_UAT_output_files.outputs.FAIL_CONTENT
+          if [ -f env.OUTPUT_DIR/env.UAT_OUTPUT_FILE ]; then echo "true"; else echo "false"; fi
+          if [ -f env.OUTPUT_DIR/env.UAT_SUCCESS_FILE ]; then echo "true"; else echo "false"; fi
+          if [ -f env.OUTPUT_DIR/env.UAT_FAILURE_FILE ]; then echo "true"; else echo "false"; fi
+          cat env.OUTPUT_DIR/env.UAT_SUCCESS_FILE
+          cat env.OUTPUT_DIR/env.UAT_FAILURE_FILE
       - name: Send report for UAT check
         id: slack
         uses: slackapi/slack-github-action@v1.21.0
