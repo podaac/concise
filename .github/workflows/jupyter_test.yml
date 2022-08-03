@@ -35,7 +35,7 @@ jobs:
       - name: Create prerequisites
         run: |
           mkdir env.OUTPUT_DIR
-          echo 'test info' > env.OUTPUT_DIR/env.UAT_SUCCESS_FILEå
+          echo 'test info' > env.OUTPUT_DIR/env.UAT_SUCCESS_FILE
       - name: Install dependencies
         run: |
           pip3 install --upgrade pip
@@ -60,11 +60,11 @@ jobs:
           echo '::set-output name=FAIL_EXISTS::$(if [ -f env.OUTPUT_DIR/env.UAT_FAILURE_FILE ]; then echo "true"; else echo "false"; fi)'
           echo '::set-output name=SUCCESS_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_SUCCESS_FILE)'
           echo '::set-output name=FAIL_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_FAILURE_FILE)'
-          if [ -f env.OUTPUT_DIR/env.UAT_OUTPUT_FILE ]; then echo "true"; else echo "false"; fi
-          if [ -f env.OUTPUT_DIR/env.UAT_SUCCESS_FILE ]; then echo "true"; else echo "false"; fi
-          if [ -f env.OUTPUT_DIR/env.UAT_FAILURE_FILE ]; then echo "true"; else echo "false"; fi
-          cat env.OUTPUT_DIR/env.UAT_SUCCESS_FILE
-          cat env.OUTPUT_DIR/env.UAT_FAILURE_FILE
+          echo '${{ steps.check_UAT_output_files.outputs.OUTPUT_EXISTS }}'
+          echo '${{ steps.check_UAT_output_files.outputs.SUCCESS_EXISTS }}'
+          echo '${{ steps.check_UAT_output_files.outputs.FAIL_EXISTS }}'
+          echo '${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}'
+          echo '${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}'
       - name: Send report for UAT check
         id: slack
         uses: slackapi/slack-github-action@v1.21.0
