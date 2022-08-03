@@ -45,11 +45,9 @@ jobs:
         run: |
           cmr_association_diff -e uat -t service -a "cmr/uat_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o env.UAT_OUTPUT_FILE --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
           cmr_association_diff -e ops -t service -a "cmr/ops_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o env.OPS_OUTPUT_FILE --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
-      - name: Run Jupyter notebook on UAT
+      - name: Run Jupyter notebooks
         run: |
           python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e uat -i env.UAT_OUTPUT_FILE -o env.OUTPUT_DIR
-      - name: Run Jupyter notebook on OPS
-        run: |
           python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e ops -i env.OPS_OUTPUT_FILE -o env.OUTPUT_DIR
       - name: Check UAT files
         id: check_UAT_output_files
