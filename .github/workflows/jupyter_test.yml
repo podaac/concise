@@ -55,18 +55,18 @@ jobs:
       - name: Check UAT files
         id: check_UAT_output_files
         run: |
-          echo '::set-output name=OUTPUT_EXISTS::$(if [ -f env.OUTPUT_DIR/env.UAT_OUTPUT_FILE ]; then echo "true"; else echo "false"; fi)'
-          echo '::set-output name=SUCCESS_EXISTS::$(if [ -f env.OUTPUT_DIR/env.UAT_SUCCESS_FILE ]; then echo "true"; else echo "false"; fi)'
-          echo '::set-output name=FAIL_EXISTS::$(if [ -f env.OUTPUT_DIR/env.UAT_FAILURE_FILE ]; then echo "true"; else echo "false"; fi)'
-          echo '::set-output name=SUCCESS_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_SUCCESS_FILE)'
-          echo '::set-output name=FAIL_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_FAILURE_FILE)'
+          echo "::set-output name=OUTPUT_EXISTS::$(if [ -f env.OUTPUT_DIR/env.UAT_OUTPUT_FILE ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=SUCCESS_EXISTS::$(if [ -f env.OUTPUT_DIR/env.UAT_SUCCESS_FILE ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=FAIL_EXISTS::$(if [ -f env.OUTPUT_DIR/env.UAT_FAILURE_FILE ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=SUCCESS_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_SUCCESS_FILE)"
+          echo "::set-output name=FAIL_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_FAILURE_FILE)"
       - name: Check output
         run: |
-          echo 'OUTPUT_EXISTS: ${{ steps.check_UAT_output_files.outputs.OUTPUT_EXISTS }}'
-          echo 'SUCCESS_EXISTS: ${{ steps.check_UAT_output_files.outputs.SUCCESS_EXISTS }}'
-          echo 'FAIL_EXISTS: ${{ steps.check_UAT_output_files.outputs.FAIL_EXISTS }}'
-          echo 'SUCCESS_CONTENT: ${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}'
-          echo 'FAIL_CONTENT: ${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}'
+          echo "OUTPUT_EXISTS: ${{ steps.check_UAT_output_files.outputs.OUTPUT_EXISTS }}"
+          echo "SUCCESS_EXISTS: ${{ steps.check_UAT_output_files.outputs.SUCCESS_EXISTS }}"
+          echo "FAIL_EXISTS: ${{ steps.check_UAT_output_files.outputs.FAIL_EXISTS }}"
+          echo "SUCCESS_CONTENT: ${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}"
+          echo "FAIL_CONTENT: ${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}"
       - name: Send report for UAT check
         id: slack
         uses: slackapi/slack-github-action@v1.21.0
