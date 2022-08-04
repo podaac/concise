@@ -40,6 +40,7 @@ jobs:
           pip3 install --upgrade pip
           pip3 install papermill
           pip3 install xarray
+          pip3 install git+https://github.com/podaac/cmr-umm-updater.git
           pip3 install git+https://github.com/podaac/cmr-association-diff.git@6193079a14e36f4c9526aa426015c2b6be41f0e2
       - name: Run CMR Association diff scripts
         run: |
@@ -97,7 +98,23 @@ jobs:
           slack-message: "Failed to run Concise Notebook on the following collections: steps.check_OPS_output_files.outputs.FAIL_CONTENT"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-      - name: Update UAT collections
+      - name: Remove UAT collections on FAIL
+        if: |
+          steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true' && (
+          github.ref == 'refs/heads/develop' ||
+          github.ref == 'refs/heads/main'    ||
+          startsWith(github.ref, 'refs/heads/release'))
+        run: |
+          python3 "remove_association.py" -p POCLOUD -n 'PODAAC Concise' -e uat -i 'env.OUTPUT_DIR/env.UAT_FAILURE_FILE' --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
+      - name: Remove OPS collections on FAIL
+        if: |
+          steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true' && (
+          github.ref == 'refs/heads/develop' ||
+          github.ref == 'refs/heads/main'    ||
+          startsWith(github.ref, 'refs/heads/release'))
+        run: |
+          python3 "remove_association.py" -p POCLOUD -n 'PODAAC Concise' -e ops -i 'env.OUTPUT_DIR/env.OPS_FAILURE_FILE' --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
+      - name: Update UAT collections on SUCCESS
         if: |
           steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true' && (
           github.ref == 'refs/heads/develop' ||
@@ -109,7 +126,7 @@ jobs:
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git commit -am "Update uat_associations.txt with new collections"
           git push
-      - name: Update OPS collections
+      - name: Update OPS collections on SUCCESS
         if: |
           steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true' && (
           github.ref == 'refs/heads/develop' ||
