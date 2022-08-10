@@ -91,7 +91,7 @@ jobs:
             steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true'
         with:
           payload: |
-          {
+            {
               "status": "GitHub Action: jupyter-test result: ${{ job.status }}",
               "blocks": [
                 {
