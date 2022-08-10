@@ -91,6 +91,18 @@ jobs:
             steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true'
         with:
           payload: |
+          {
+              "status": "GitHub Action: jupyter-test result: ${{ job.status }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Failed to run Concise Notebook on the following collections: ${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}\n steps.check_UAT_output_files.outputs.FAIL_CONTENT"
+                  }
+                }
+              ]
+            }
             {
               "channel": "podaac-tva",
               "text": "Failed to run Concise Notebook on the following collections: steps.check_UAT_output_files.outputs.FAIL_CONTENT"
