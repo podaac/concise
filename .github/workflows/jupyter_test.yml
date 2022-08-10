@@ -79,8 +79,16 @@ jobs:
         with:
           payload: |
             {
-              "channel": "#podaac-tva",
-              "text": "Successfully ran Concise Notebook on the following collections: steps.check_UAT_output_files.outputs.SUCCESS_CONTENT"
+              "status": "GitHub Action - jupyter-test result: SUCCESS",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Successfully ran Concise Notebook on the following collections: steps.check_UAT_output_files.outputs.SUCCESS_CONTENT"
+                  }
+                }
+              ]
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
@@ -92,8 +100,7 @@ jobs:
         with:
           payload: |
             {
-              "status": "GitHub Action: jupyter-test result: ${{ job.status }}",
-              "channel": "#podaac-tva",
+              "status": "GitHub Action - jupyter-test result: FAILURE",
               "blocks": [
                 {
                   "type": "section",
