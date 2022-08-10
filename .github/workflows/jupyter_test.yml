@@ -73,36 +73,56 @@ jobs:
           echo "::set-output name=FAIL_CONTENT::$(cat env.OUTPUT_DIR/env.OPS_FAILURE_FILE)"
       - name: Send report for UAT check - SUCCESS
         uses: slackapi/slack-github-action@v1.21.0
-        if: steps.check_UAT_output_files.outputs.OUTPUT_EXISTS == 'true' && steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true'
+        if: |
+            steps.check_UAT_output_files.outputs.OUTPUT_EXISTS == 'true' &&
+            steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true'
         with:
-          channel-id: 'podaac-tva'
-          slack-message: "Successfully ran Concise Notebook on the following collections: steps.check_UAT_output_files.outputs.SUCCESS_CONTENT"
+          payload: |
+            {
+              "channel": "podaac-tva"
+              "text": "Successfully ran Concise Notebook on the following collections: steps.check_UAT_output_files.outputs.SUCCESS_CONTENT"
+            }
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
       - name: Send report for UAT check - FAILURE
         uses: slackapi/slack-github-action@v1.21.0
-        if: steps.check_UAT_output_files.outputs.OUTPUT_EXISTS == 'true' && steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true'
+        if: |
+            steps.check_UAT_output_files.outputs.OUTPUT_EXISTS == 'true' &&
+            steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true'
         with:
-          channel-id: 'podaac-tva'
-          slack-message: "Failed to run Concise Notebook on the following collections: steps.check_UAT_output_files.outputs.FAIL_CONTENT"
+          payload: |
+            {
+              "channel": "podaac-tva"
+              "text": "Failed to run Concise Notebook on the following collections: steps.check_UAT_output_files.outputs.FAIL_CONTENT"
+            }
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
       - name: Send report for OPS check  - SUCCESS
         uses: slackapi/slack-github-action@v1.21.0
-        if: steps.check_OPS_output_files.outputs.OUTPUT_EXISTS == 'true' && steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true'
+        if: |
+            steps.check_OPS_output_files.outputs.OUTPUT_EXISTS == 'true' &&
+            steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true'
         with:
-          channel-id: 'podaac-tva'
-          slack-message: "Successfully ran Concise Notebook on the following collections: steps.check_OPS_output_files.outputs.SUCCESS_CONTENT"
+          payload: |
+            {
+              "channel": "podaac-tva"
+              "text": "Successfully ran Concise Notebook on the following collections: steps.check_OPS_output_files.outputs.SUCCESS_CONTENT"
+            }
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
       - name: Send report for OPS check  - FAILURE
         uses: slackapi/slack-github-action@v1.21.0
-        if: steps.check_OPS_output_files.outputs.OUTPUT_EXISTS == 'true' && steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
+        if: |
+            steps.check_OPS_output_files.outputs.OUTPUT_EXISTS == 'true' &&
+            steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
         with:
-          channel-id: 'podaac-tva'
-          slack-message: "Failed to run Concise Notebook on the following collections: steps.check_OPS_output_files.outputs.FAIL_CONTENT"
+          payload: |
+            {
+              "channel": "podaac-tva"
+              "text": "Failed to run Concise Notebook on the following collections: steps.check_OPS_output_files.outputs.FAIL_CONTENT"
+            }
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
       - name: Remove UAT collections on FAIL
         if: |
           steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true' && (
