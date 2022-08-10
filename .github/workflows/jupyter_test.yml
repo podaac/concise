@@ -93,6 +93,7 @@ jobs:
           payload: |
             {
               "status": "GitHub Action: jupyter-test result: ${{ job.status }}",
+              "channel": "podaac-tva",
               "blocks": [
                 {
                   "type": "section",
