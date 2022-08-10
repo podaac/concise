@@ -79,7 +79,7 @@ jobs:
         with:
           payload: |
             {
-              "channel": "podaac-tva"
+              "channel": "#podaac-tva",
               "text": "Successfully ran Concise Notebook on the following collections: steps.check_UAT_output_files.outputs.SUCCESS_CONTENT"
             }
         env:
@@ -92,7 +92,7 @@ jobs:
         with:
           payload: |
             {
-              "channel": "podaac-tva"
+              "channel": "#podaac-tva",
               "text": "Failed to run Concise Notebook on the following collections: steps.check_UAT_output_files.outputs.FAIL_CONTENT"
             }
         env:
@@ -105,7 +105,7 @@ jobs:
         with:
           payload: |
             {
-              "channel": "podaac-tva"
+              "channel": "#podaac-tva",
               "text": "Successfully ran Concise Notebook on the following collections: steps.check_OPS_output_files.outputs.SUCCESS_CONTENT"
             }
         env:
@@ -118,7 +118,7 @@ jobs:
         with:
           payload: |
             {
-              "channel": "podaac-tva"
+              "channel": "#podaac-tva",
               "text": "Failed to run Concise Notebook on the following collections: steps.check_OPS_output_files.outputs.FAIL_CONTENT"
             }
         env:
