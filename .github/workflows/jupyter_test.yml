@@ -79,7 +79,7 @@ jobs:
         with:
           payload: |
             {
-              "status": "GitHub Action - jupyter-test result: SUCCESS",
+              "status": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
               "blocks": [
                 {
                   "type": "section",
@@ -100,7 +100,7 @@ jobs:
         with:
           payload: |
             {
-              "status": "GitHub Action - jupyter-test result: FAILURE",
+              "status": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
               "blocks": [
                 {
                   "type": "section",
