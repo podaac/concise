@@ -79,16 +79,7 @@ jobs:
         with:
           payload: |
             {
-              "status": "Jupyter-test result: FAILURE\nSuccessfully ran Concise Notebook on the following collections: steps.check_UAT_output_files.outputs.SUCCESS_CONTENT",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Blocks text"
-                  }
-                }
-              ]
+              "status": "Jupyter-test UAT result: SUCCESS\n\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
@@ -100,7 +91,7 @@ jobs:
         with:
           payload: |
             {
-              "status": "Jupyter-test result: FAILURE\nFailed to run Concise Notebook on the following collections: ${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}",
+              "status": "Jupyter-test UAT result: FAILURE\n\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}"
               "blocks": [
                 {
                   "type": "section",
@@ -121,8 +112,7 @@ jobs:
         with:
           payload: |
             {
-              "channel": "podaac-tva",
-              "text": "Successfully ran Concise Notebook on the following collections: steps.check_OPS_output_files.outputs.SUCCESS_CONTENT"
+              "status": "Jupyter-test OPS result: SUCCESS\n\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.SUCCESS_CONTENT }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
@@ -134,8 +124,7 @@ jobs:
         with:
           payload: |
             {
-              "channel": "podaac-tva",
-              "text": "Failed to run Concise Notebook on the following collections: steps.check_OPS_output_files.outputs.FAIL_CONTENT"
+              "status": "Jupyter-test OPS result: FAILURE\n\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.FAIL_CONTENT }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
