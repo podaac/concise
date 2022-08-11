@@ -58,11 +58,6 @@ jobs:
           echo "::set-output name=FAIL_EXISTS::$(if [ -f env.OUTPUT_DIR/env.UAT_FAILURE_FILE ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=SUCCESS_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_SUCCESS_FILE)"
           echo "::set-output name=FAIL_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_FAILURE_FILE)"
-          echo "::set-output name=OUTPUT_EXISTS::true"
-          echo "::set-output name=SUCCESS_EXISTS::true"
-          echo "::set-output name=SUCCESS_CONTENT::Demo content for testing UAT success slack report"
-          echo "::set-output name=FAIL_EXISTS::true"
-          echo "::set-output name=FAIL_CONTENT::Demo content for testing UAT failure slack report"
       - name: Check OPS files
         id: check_OPS_output_files
         run: |
@@ -92,15 +87,6 @@ jobs:
           payload: |
             {
               "status": "Jupyter-test UAT result: FAILURE\n\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}"
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Blocks text"
-                  }
-                }
-              ]
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
