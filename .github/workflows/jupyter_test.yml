@@ -59,12 +59,10 @@ jobs:
       - name: Check UAT files
         id: check_UAT_output_files
         run: |
-          echo "::set-output name=OUTPUT_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_OUTPUT_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=SUCCESS_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=FAIL_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }})"
           echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }})"
-          echo "Output File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_OUTPUT_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Success File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Failed File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }})"
@@ -72,12 +70,10 @@ jobs:
       - name: Check OPS files
         id: check_OPS_output_files
         run: |
-          echo "::set-output name=OUTPUT_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_OUTPUT_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=SUCCESS_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=FAIL_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }})"
           echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }})"
-          echo "Output File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_OUTPUT_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Success File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Failed File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }})"
@@ -85,7 +81,6 @@ jobs:
       - name: Send report for UAT check - SUCCESS
         uses: slackapi/slack-github-action@v1.21.0
         if: |
-            steps.check_UAT_output_files.outputs.OUTPUT_EXISTS == 'true' &&
             steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true'
         with:
           payload: |
@@ -97,7 +92,6 @@ jobs:
       - name: Send report for UAT check - FAILURE
         uses: slackapi/slack-github-action@v1.21.0
         if: |
-            steps.check_UAT_output_files.outputs.OUTPUT_EXISTS == 'true' &&
             steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true'
         with:
           payload: |
@@ -109,7 +103,6 @@ jobs:
       - name: Send report for OPS check  - SUCCESS
         uses: slackapi/slack-github-action@v1.21.0
         if: |
-            steps.check_OPS_output_files.outputs.OUTPUT_EXISTS == 'true' &&
             steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true'
         with:
           payload: |
@@ -121,7 +114,6 @@ jobs:
       - name: Send report for OPS check  - FAILURE
         uses: slackapi/slack-github-action@v1.21.0
         if: |
-            steps.check_OPS_output_files.outputs.OUTPUT_EXISTS == 'true' &&
             steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
         with:
           payload: |
