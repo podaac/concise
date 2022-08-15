@@ -45,28 +45,28 @@ jobs:
           pip3 install git+https://github.com/podaac/cmr-association-diff.git@6193079a14e36f4c9526aa426015c2b6be41f0e2
       - name: Run CMR Association diff scripts
         run: |
-          cmr_association_diff -e uat -t service -a "cmr/uat_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o env.UAT_OUTPUT_FILE --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
-          cmr_association_diff -e ops -t service -a "cmr/ops_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o env.OPS_OUTPUT_FILE --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
+          cmr_association_diff -e uat -t service -a "cmr/uat_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o ${{ env.UAT_OUTPUT_FILE }} --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
+          cmr_association_diff -e ops -t service -a "cmr/ops_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o ${{ env.OPS_OUTPUT_FILE }} --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
       - name: Run Jupyter notebooks
         run: |
-          python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e uat -i env.UAT_OUTPUT_FILE -o env.OUTPUT_DIR
-          python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e ops -i env.OPS_OUTPUT_FILE -o env.OUTPUT_DIR
+          python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e uat -i ${{ env.UAT_OUTPUT_FILE }} -o ${{ env.OUTPUT_DIR }}
+          python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e ops -i ${{ env.OPS_OUTPUT_FILE }} -o ${{ env.OUTPUT_DIR }}
       - name: Check UAT files
         id: check_UAT_output_files
         run: |
-          echo "::set-output name=OUTPUT_EXISTS::$(if [ -f env.OUTPUT_DIR/env.UAT_OUTPUT_FILE ]; then echo "true"; else echo "false"; fi)"
-          echo "::set-output name=SUCCESS_EXISTS::$(if [ -f env.OUTPUT_DIR/env.UAT_SUCCESS_FILE ]; then echo "true"; else echo "false"; fi)"
-          echo "::set-output name=FAIL_EXISTS::$(if [ -f env.OUTPUT_DIR/env.UAT_FAILURE_FILE ]; then echo "true"; else echo "false"; fi)"
-          echo "::set-output name=SUCCESS_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_SUCCESS_FILE)"
-          echo "::set-output name=FAIL_CONTENT::$(cat env.OUTPUT_DIR/env.UAT_FAILURE_FILE)"
+          echo "::set-output name=OUTPUT_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_OUTPUT_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=SUCCESS_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=FAIL_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }})"
+          echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }})"
       - name: Check OPS files
         id: check_OPS_output_files
         run: |
-          echo "::set-output name=OUTPUT_EXISTS::$(if [ -f env.OUTPUT_DIR/env.OPS_OUTPUT_FILE ]; then echo "true"; else echo "false"; fi)"
-          echo "::set-output name=SUCCESS_EXISTS::$(if [ -f env.OUTPUT_DIR/env.OPS_SUCCESS_FILE ]; then echo "true"; else echo "false"; fi)"
-          echo "::set-output name=FAIL_EXISTS::$(if [ -f env.OUTPUT_DIR/env.OPS_FAILURE_FILE ]; then echo "true"; else echo "false"; fi)"
-          echo "::set-output name=SUCCESS_CONTENT::$(cat env.OUTPUT_DIR/env.OPS_SUCCESS_FILE)"
-          echo "::set-output name=FAIL_CONTENT::$(cat env.OUTPUT_DIR/env.OPS_FAILURE_FILE)"
+          echo "::set-output name=OUTPUT_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_OUTPUT_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=SUCCESS_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=FAIL_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }})"
+          echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }})"
       - name: Send report for UAT check - SUCCESS
         uses: slackapi/slack-github-action@v1.21.0
         if: |
@@ -122,7 +122,7 @@ jobs:
           github.ref == 'refs/heads/main'    ||
           startsWith(github.ref, 'refs/heads/release'))
         run: |
-          python3 "remove_association.py" -p POCLOUD -n 'PODAAC Concise' -e uat -i 'env.OUTPUT_DIR/env.UAT_FAILURE_FILE' --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
+          python3 "remove_association.py" -p POCLOUD -n 'PODAAC Concise' -e uat -i '${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }}' --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
       - name: Remove OPS collections on FAIL
         if: |
           steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true' && (
@@ -130,7 +130,7 @@ jobs:
           github.ref == 'refs/heads/main'    ||
           startsWith(github.ref, 'refs/heads/release'))
         run: |
-          python3 "remove_association.py" -p POCLOUD -n 'PODAAC Concise' -e ops -i 'env.OUTPUT_DIR/env.OPS_FAILURE_FILE' --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
+          python3 "remove_association.py" -p POCLOUD -n 'PODAAC Concise' -e ops -i '${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }}' --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
       - name: Update UAT collections on SUCCESS
         if: |
           steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true' && (
@@ -138,7 +138,7 @@ jobs:
           github.ref == 'refs/heads/main'    ||
           startsWith(github.ref, 'refs/heads/release'))
         run: |
-          cat env.UAT_SUCCESS_FILE >> ./cmr/uat_associations.txt
+          cat ${{ env.UAT_SUCCESS_FILE }} >> ./cmr/uat_associations.txt
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git commit -am "Update uat_associations.txt with new collections"
@@ -150,7 +150,7 @@ jobs:
           github.ref == 'refs/heads/main'    ||
           startsWith(github.ref, 'refs/heads/release'))
         run: |
-          cat env.OPS_SUCCESS_FILE >> ./cmr/ops_associations.txt
+          cat ${{ env.OPS_SUCCESS_FILE }} >> ./cmr/ops_associations.txt
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git commit -am "Update ops_associations.txt with new collections"
