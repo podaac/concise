@@ -35,7 +35,7 @@ jobs:
       - name: Create prerequisites
         run: |
           mkdir env.OUTPUT_DIR
-          touch env.OUTPUT_DIR/env.UAT_SUCCESS_FILE
+          realpath env.OUTPUT_DIR
       - name: Install dependencies
         run: |
           pip3 install --upgrade pip
