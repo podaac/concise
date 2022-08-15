@@ -35,6 +35,7 @@ jobs:
       - name: Create prerequisites
         run: |
           mkdir env.OUTPUT_DIR
+          cat 'test' > env.OUTPUT_DIR/env.UAT_SUCCESS_FILE
       - name: Install dependencies
         run: |
           pip3 install --upgrade pip
