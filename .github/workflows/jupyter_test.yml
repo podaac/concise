@@ -17,28 +17,148 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Create prerequisites
-        run: |
-          mkdir jupyter_notebooks/output
-      - name: Install dependencies
-        run: |
-          pip3 install --upgrade pip
-          pip3 install papermill
-          pip3 install xarray
-          pip3 install git+https://github.com/podaac/cmr-association-diff.git@6193079a14e36f4c9526aa426015c2b6be41f0e2
-      - name: Run CMR Association diff scripts
-        run: |
-          cmr_association_diff -e uat -t service -a "cmr/uat_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o "jupyter_notebooks/output/uat_output_json.txt" --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
-          cmr_association_diff -e ops -t service -a "cmr/ops_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o "jupyter_notebooks/output/ops_output_json.txt" --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
       - name: Set environment variables
+        run: |
+          echo "UAT_OUTPUT_FILE=jupyter_notebooks/output/uat_output_json.txt" >> $GITHUB_ENV
+          echo "OPS_OUTPUT_FILE=jupyter_notebooks/output/ops_output_json.txt" >> $GITHUB_ENV
+          echo "OUTPUT_DIR=jupyter_notebooks/output" >> $GITHUB_ENV
+          echo "UAT_SUCCESS_FILE=uat_success.txt" >> $GITHUB_ENV
+          echo "OPS_SUCCESS_FILE=ops_success.txt" >> $GITHUB_ENV
+          echo "UAT_FAILURE_FILE=uat_fail.txt" >> $GITHUB_ENV
+          echo "OPS_FAILURE_FILE=ops_fail.txt" >> $GITHUB_ENV
+      - name: Set environment variables for notebook
         run: |
           echo "OPS_USERNAME=${{ secrets.EDL_USER }}" >> $GITHUB_ENV
           echo "OPS_PASSWORD=${{ secrets.EDL_PASS }}" >> $GITHUB_ENV
           echo "UAT_USERNAME=${{ secrets.EDL_USER }}" >> $GITHUB_ENV
           echo "UAT_PASSWORD=${{ secrets.EDL_PASS }}" >> $GITHUB_ENV
-      - name: Run Jupyter notebook on UAT
+      - name: Create prerequisites
         run: |
-          python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e uat -i "jupyter_notebooks/output/uat_output_json.txt" -o "jupyter_notebooks/output"
-      - name: Run Jupyter notebook on OPS
+          mkdir ${{ env.OUTPUT_DIR }}
+          realpath ${{ env.OUTPUT_DIR }}
+      - name: Install dependencies
         run: |
-          python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e ops -i "jupyter_notebooks/output/ops_output_json.txt" -o "jupyter_notebooks/output"
+          pip3 install --upgrade pip
+          pip3 install papermill
+          pip3 install xarray
+          pip3 install jupyter
+          pip3 install black
+          pip3 install matplotlib
+          pip3 install netCDF4
+          pip3 install git+https://github.com/nasa/harmony-py.git
+          pip3 install git+https://github.com/podaac/cmr-umm-updater.git
+          pip3 install git+https://github.com/podaac/cmr-association-diff.git@6193079a14e36f4c9526aa426015c2b6be41f0e2
+      - name: Run CMR Association diff scripts
+        run: |
+          cmr_association_diff -e uat -t service -a "cmr/uat_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o ${{ env.UAT_OUTPUT_FILE }} --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
+          cmr_association_diff -e ops -t service -a "cmr/ops_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o ${{ env.OPS_OUTPUT_FILE }} --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
+      - name: Run Jupyter notebooks
+        run: |
+          python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e uat -i ${{ env.UAT_OUTPUT_FILE }} -o ${{ env.OUTPUT_DIR }}
+          python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e ops -i ${{ env.OPS_OUTPUT_FILE }} -o ${{ env.OUTPUT_DIR }}
+      - name: Check UAT files
+        id: check_UAT_output_files
+        run: |
+          echo "::set-output name=SUCCESS_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=FAIL_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }})"
+          echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }})"
+          echo "Success File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "Failed File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }})"
+          echo "Failed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }})"
+      - name: Check OPS files
+        id: check_OPS_output_files
+        run: |
+          echo "::set-output name=SUCCESS_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=FAIL_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }})"
+          echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }})"
+          echo "Success File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "Failed File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }})"
+          echo "Failed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }})"
+      - name: Send report for UAT check - SUCCESS
+        uses: slackapi/slack-github-action@v1.21.0
+        if: |
+            steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true'
+        with:
+          payload: |
+            {
+              "status": "Jupyter-test UAT result: SUCCESS\n\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
+      - name: Send report for UAT check - FAILURE
+        uses: slackapi/slack-github-action@v1.21.0
+        if: |
+            steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true'
+        with:
+          payload: |
+            {
+              "status": "Jupyter-test UAT result: FAILURE\n\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
+      - name: Send report for OPS check  - SUCCESS
+        uses: slackapi/slack-github-action@v1.21.0
+        if: |
+            steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true'
+        with:
+          payload: |
+            {
+              "status": "Jupyter-test OPS result: SUCCESS\n\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.SUCCESS_CONTENT }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
+      - name: Send report for OPS check  - FAILURE
+        uses: slackapi/slack-github-action@v1.21.0
+        if: |
+            steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
+        with:
+          payload: |
+            {
+              "status": "Jupyter-test OPS result: FAILURE\n\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.FAIL_CONTENT }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
+      - name: Remove UAT collections on FAIL
+        if: |
+          steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true' && (
+          github.ref == 'refs/heads/develop' ||
+          github.ref == 'refs/heads/main'    ||
+          startsWith(github.ref, 'refs/heads/release'))
+        run: |
+          python3 "remove_association.py" -p POCLOUD -n 'PODAAC Concise' -e uat -i '${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }}' --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
+      - name: Remove OPS collections on FAIL
+        if: |
+          steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true' && (
+          github.ref == 'refs/heads/develop' ||
+          github.ref == 'refs/heads/main'    ||
+          startsWith(github.ref, 'refs/heads/release'))
+        run: |
+          python3 "remove_association.py" -p POCLOUD -n 'PODAAC Concise' -e ops -i '${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }}' --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
+      - name: Update UAT collections on SUCCESS
+        if: |
+          steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true' && (
+          github.ref == 'refs/heads/develop' ||
+          github.ref == 'refs/heads/main'    ||
+          startsWith(github.ref, 'refs/heads/release'))
+        run: |
+          cat ${{ env.UAT_SUCCESS_FILE }} >> ./cmr/uat_associations.txt
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git commit -am "Update uat_associations.txt with new collections"
+          git push
+      - name: Update OPS collections on SUCCESS
+        if: |
+          steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true' && (
+          github.ref == 'refs/heads/develop' ||
+          github.ref == 'refs/heads/main'    ||
+          startsWith(github.ref, 'refs/heads/release'))
+        run: |
+          cat ${{ env.OPS_SUCCESS_FILE }} >> ./cmr/ops_associations.txt
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git commit -am "Update ops_associations.txt with new collections"
+          git push
