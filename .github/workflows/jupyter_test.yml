@@ -34,8 +34,8 @@ jobs:
           echo "UAT_PASSWORD=${{ secrets.EDL_PASS }}" >> $GITHUB_ENV
       - name: Create prerequisites
         run: |
-          mkdir env.OUTPUT_DIR
-          realpath env.OUTPUT_DIR
+          mkdir ${{ env.OUTPUT_DIR }}
+          realpath ${{ env.OUTPUT_DIR }}
       - name: Install dependencies
         run: |
           pip3 install --upgrade pip
