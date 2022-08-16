@@ -61,23 +61,23 @@ jobs:
         run: |
           echo "::set-output name=SUCCESS_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=FAIL_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
-          echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }})"
-          echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }})"
-          echo "Success File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
+          echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
+          echo "\n\nSuccess File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Failed File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
-          echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }})"
-          echo "Failed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }})"
+          echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
+          echo "\nFailed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
       - name: Check OPS files
         id: check_OPS_output_files
         run: |
           echo "::set-output name=SUCCESS_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=FAIL_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
-          echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }})"
-          echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }})"
-          echo "Success File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
+          echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
+          echo "\n\nSuccess File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Failed File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
-          echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }})"
-          echo "Failed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }})"
+          echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
+          echo "\nFailed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }}) | sed 's/$/,/' | tr '\n' ' '"
       - name: Send report for UAT check - SUCCESS
         uses: slackapi/slack-github-action@v1.21.0
         if: |
@@ -136,7 +136,7 @@ jobs:
         if: |
           steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true'
         run: |
-          cat ${{ env.UAT_SUCCESS_FILE }} >> ./cmr/uat_associations.txt
+          cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} >> ./cmr/uat_associations.txt
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git commit -am "Update uat_associations.txt with new collections"
@@ -145,7 +145,7 @@ jobs:
         if: |
           steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true'
         run: |
-          cat ${{ env.OPS_SUCCESS_FILE }} >> ./cmr/ops_associations.txt
+          cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} >> ./cmr/ops_associations.txt
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git commit -am "Update ops_associations.txt with new collections"
