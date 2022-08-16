@@ -63,10 +63,13 @@ jobs:
           echo "::set-output name=FAIL_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
           echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
-          echo "\n\nSuccess File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo
+          echo
+          echo "Success File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Failed File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
-          echo "\nFailed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
+          echo
+          echo "Failed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
       - name: Check OPS files
         id: check_OPS_output_files
         run: |
@@ -74,10 +77,13 @@ jobs:
           echo "::set-output name=FAIL_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
           echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
-          echo "\n\nSuccess File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
+          echo
+          echo
+          echo "Success File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Failed File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
-          echo "\nFailed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }}) | sed 's/$/,/' | tr '\n' ' '"
+          echo
+          echo "Failed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
       - name: Send report for UAT check - SUCCESS
         uses: slackapi/slack-github-action@v1.21.0
         if: |
