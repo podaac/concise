@@ -135,7 +135,9 @@ jobs:
       - name: Update UAT collections on SUCCESS
         if: |
           steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true'
+        # Add a new line to the EOF if there isn't any, so the merging will start in a new line not after the last character
         run: |
+          vi -escwq ./cmr/uat_associations.txt
           cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} >> ./cmr/uat_associations.txt
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
@@ -144,7 +146,9 @@ jobs:
       - name: Update OPS collections on SUCCESS
         if: |
           steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true'
+        # Add a new line to the EOF if there isn't any, so the merging will start in a new line not after the last character
         run: |
+          vi -escwq ./cmr/ops_associations.txt
           cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} >> ./cmr/ops_associations.txt
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
