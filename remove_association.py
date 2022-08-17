@@ -70,7 +70,7 @@ def run():
 
     header = {
         'Content-type': "application/json",
-        'Authorization': f"Bearer {str(_args.token)}",
+        'Authorization': str(_args.token),
     }
     url_prefix = svc_update.cmr_environment_url(_args.env)
 
@@ -85,8 +85,9 @@ def run():
         assoc_concept_ids = afile.readlines()
     for i, assoc_concept_id in enumerate(assoc_concept_ids):
         collection_concept_id = assoc_concept_id.strip('\n')
-        print("Removing {} from CMR association".format(collection_concept_id))
-        create_assoc.remove_association(url_prefix, service_concept_id, collection_concept_id, header)
+        print(f"Removing {collection_concept_id} from CMR association")
+        resp = create_assoc.remove_association(url_prefix, service_concept_id, collection_concept_id, header)
+        print(f'Response: {resp}')
 
 if __name__ == '__main__':
     run()

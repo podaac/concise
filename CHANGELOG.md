@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - PODAAC-4658
     - Updated jupyter-test workflow to use environment variables
     - Updated jupyter-test workflow to inlcude slack reporting, collections update and removal
+  - PODAAC-4659
+    - Removed branch restriction from jupyter-test workflow on success notebook pass
+    - Updated token handling for association removal
+    - Some log formatting for jupyter-test workflow
 ### Changed 
 ### Deprecated 
 ### Removed

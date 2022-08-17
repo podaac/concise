@@ -1,4 +1,4 @@
-# This is the main build pipeline that verifies and publishes the software
+# This is a test pipeline, that verifies and updates the associations in cmr
 name: Jupyter Test
 # Controls when the workflow will run
 on:
@@ -61,23 +61,29 @@ jobs:
         run: |
           echo "::set-output name=SUCCESS_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=FAIL_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
-          echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }})"
-          echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }})"
+          echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
+          echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
+          echo
+          echo
           echo "Success File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Failed File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
-          echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }})"
-          echo "Failed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }})"
+          echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
+          echo
+          echo "Failed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
       - name: Check OPS files
         id: check_OPS_output_files
         run: |
           echo "::set-output name=SUCCESS_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "::set-output name=FAIL_EXISTS::$(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
-          echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }})"
-          echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }})"
+          echo "::set-output name=SUCCESS_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
+          echo "::set-output name=FAIL_CONTENT::$(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
+          echo
+          echo
           echo "Success File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} ]; then echo "true"; else echo "false"; fi)"
           echo "Failed File: $(if [ -f ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} ]; then echo "true"; else echo "false"; fi)"
-          echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }})"
-          echo "Failed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }})"
+          echo "Success Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
+          echo
+          echo "Failed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
       - name: Send report for UAT check - SUCCESS
         uses: slackapi/slack-github-action@v1.21.0
         if: |
@@ -124,40 +130,32 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
       - name: Remove UAT collections on FAIL
         if: |
-          steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true' && (
-          github.ref == 'refs/heads/develop' ||
-          github.ref == 'refs/heads/main'    ||
-          startsWith(github.ref, 'refs/heads/release'))
+          steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true'
         run: |
           python3 "remove_association.py" -p POCLOUD -n 'PODAAC Concise' -e uat -i '${{ env.OUTPUT_DIR }}/${{ env.UAT_FAILURE_FILE }}' --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
       - name: Remove OPS collections on FAIL
         if: |
-          steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true' && (
-          github.ref == 'refs/heads/develop' ||
-          github.ref == 'refs/heads/main'    ||
-          startsWith(github.ref, 'refs/heads/release'))
+          steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
         run: |
           python3 "remove_association.py" -p POCLOUD -n 'PODAAC Concise' -e ops -i '${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }}' --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
       - name: Update UAT collections on SUCCESS
         if: |
-          steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true' && (
-          github.ref == 'refs/heads/develop' ||
-          github.ref == 'refs/heads/main'    ||
-          startsWith(github.ref, 'refs/heads/release'))
+          steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true'
+        # Add a new line to the EOF if there isn't any, so the merging will start in a new line not after the last character
         run: |
-          cat ${{ env.UAT_SUCCESS_FILE }} >> ./cmr/uat_associations.txt
+          vi -escwq ./cmr/uat_associations.txt
+          cat ${{ env.OUTPUT_DIR }}/${{ env.UAT_SUCCESS_FILE }} >> ./cmr/uat_associations.txt
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git commit -am "Update uat_associations.txt with new collections"
           git push
       - name: Update OPS collections on SUCCESS
         if: |
-          steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true' && (
-          github.ref == 'refs/heads/develop' ||
-          github.ref == 'refs/heads/main'    ||
-          startsWith(github.ref, 'refs/heads/release'))
+          steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true'
+        # Add a new line to the EOF if there isn't any, so the merging will start in a new line not after the last character
         run: |
-          cat ${{ env.OPS_SUCCESS_FILE }} >> ./cmr/ops_associations.txt
+          vi -escwq ./cmr/ops_associations.txt
+          cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_SUCCESS_FILE }} >> ./cmr/ops_associations.txt
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git commit -am "Update ops_associations.txt with new collections"
