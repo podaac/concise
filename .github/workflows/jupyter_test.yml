@@ -92,19 +92,19 @@ jobs:
           payload: |
             {
               "blocks": [
-		            {
-		            	"type": "header",
-		            	"text": {
-		            		"type": "plain_text",
-		            		"text": "Jupyter-test UAT result: *SUCCESS*"
-		            	}
-		            },
                 {
-		            	"type": "section",
-		            	"text": {
-		            		"type": "mrkdown",
-		            		"text": "Successfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}"
-		            	}
+                "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Jupyter-test UAT result: *SUCCESS*"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdown",
+                    "text": "Successfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}"
+                  }
                 }
               ]
             }
@@ -152,14 +152,15 @@ jobs:
             steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
         with:
           payload: |
-           "blocks": [
-		            {
-		            	"type": "section",
-		            	"text": {
-		            		"type": "plain_text",
-		            		"text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|_Execution link_x>"
-		            	}
-		            }
+           {
+            "blocks": [
+                {
+		              "type": "section",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|_Execution link_x>"
+                  }
+                }
               ]
             }
         env:
