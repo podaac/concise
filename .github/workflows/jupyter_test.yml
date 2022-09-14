@@ -91,7 +91,7 @@ jobs:
         with:
           payload: |
             {
-              "status": "Jupyter-test UAT result: SUCCESS\n\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}"
+              "status": "Jupyter-test UAT result: SUCCESS\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}\n"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
@@ -102,7 +102,7 @@ jobs:
         with:
           payload: |
             {
-              "status": "Jupyter-test UAT result: FAILURE\n\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}"
+              "status": "Jupyter-test UAT result: FAILURE\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}\n"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
@@ -113,7 +113,7 @@ jobs:
         with:
           payload: |
             {
-              "status": "Jupyter-test OPS result: SUCCESS\n\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.SUCCESS_CONTENT }}"
+              "status": "Jupyter-test OPS result: SUCCESS\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.SUCCESS_CONTENT }}\n"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
@@ -124,7 +124,21 @@ jobs:
         with:
           payload: |
             {
-              "status": "Jupyter-test OPS result: FAILURE\n\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.FAIL_CONTENT }}"
+              "status": "Jupyter-test OPS result: FAILURE\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.FAIL_CONTENT }}\n"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
+      - name: Add link to slack report
+        uses: slackapi/slack-github-action@v1.21.0
+        if: |
+            steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true' ||
+            steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true' ||
+            steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true' ||
+            steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
+        with:
+          payload: |
+            {
+              "status": "Execution link:\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
