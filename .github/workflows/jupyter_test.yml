@@ -91,6 +91,7 @@ jobs:
         with:
           payload: |
             {
+              "status": "",
               "blocks": [
                 {
                 "type": "header",
@@ -153,6 +154,7 @@ jobs:
         with:
           payload: |
            {
+            "status": "",
             "blocks": [
                 {
                   "type": "section",
