@@ -91,23 +91,7 @@ jobs:
         with:
           payload: |
             {
-              "status": "Text",
-              "blocks": [
-                {
-                "type": "header",
-                  "text": {
-                    "type": "plain_text",
-                    "text": "Jupyter-test UAT result: *SUCCESS*"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdown",
-                    "text": "Successfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}"
-                  }
-                }
-              ]
+              "status": "Jupyter-test UAT result: *SUCCESS*\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
@@ -154,13 +138,13 @@ jobs:
         with:
           payload: |
            {
-            "status": "Link",
+            "status": "Execution link:\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
             "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "plain_text",
-                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|_Execution link_x>"
+                    "text": "Execution link:\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
                   }
                 }
               ]
