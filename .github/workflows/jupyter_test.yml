@@ -155,7 +155,7 @@ jobs:
            {
             "blocks": [
                 {
-		              "type": "section",
+                  "type": "section",
                   "text": {
                     "type": "plain_text",
                     "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|_Execution link_x>"
