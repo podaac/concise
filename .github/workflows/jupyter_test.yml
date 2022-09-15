@@ -89,7 +89,7 @@ jobs:
         if: |
             steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true'
         run: |
-          echo ${{ env.SLACK_REPORT_CONTENT }} += "Jupyter-test UAT result: SUCCESS\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}\n"
+          echo ${{ env.SLACK_REPORT_CONTENT }} += "TEST ONLY!!\n\nJupyter-test UAT result: SUCCESS\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}\n"
       - name: Slack Report update - Add info for UAT check - FAILURE
         if: |
             steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true'
