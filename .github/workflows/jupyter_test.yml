@@ -115,7 +115,7 @@ jobs:
       - name: Send Report to Slack
         uses: slackapi/slack-github-action@v1.21.0
         if: |
-            ${{ env.SLACK_REPORT_CONTENT } != ''
+            env.SLACK_REPORT_CONTENT != ''
         with:
           payload: |
             {
