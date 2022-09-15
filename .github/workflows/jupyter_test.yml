@@ -90,7 +90,7 @@ jobs:
             steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true'
         run: |
           echo "Before: " ${{ env.SLACK_REPORT_CONTENT }}
-          echo -e "${{ env.SLACK_REPORT_CONTENT }}\nTEST ONLY!!\n\nJupyter-test UAT result: SUCCESS\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}\n" >> $GITHUB_ENV
+          echo -e "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\nTEST ONLY!!\n\nJupyter-test UAT result: SUCCESS\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}\n" >> $GITHUB_ENV
           echo "After: " ${{ env.SLACK_REPORT_CONTENT }}
       - name: Slack Report update - Add info for UAT check - FAILURE
         if: |
@@ -113,7 +113,7 @@ jobs:
             steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true' ||
             steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
         run: |
-          echo -e "${{ env.SLACK_REPORT_CONTENT }}\nExecution link:\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>" >> $GITHUB_ENV
+          echo -e "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\nExecution link:\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>" >> $GITHUB_ENV
           echo ${{ env.SLACK_REPORT_CONTENT }}
       - name: Send Report to Slack
         uses: slackapi/slack-github-action@v1.21.0
