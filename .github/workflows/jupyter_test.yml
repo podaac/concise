@@ -119,7 +119,7 @@ jobs:
         with:
           payload: |
             {
-              "status": "${{ env.SLACK_REPORT_CONTENT }"
+              "status": "${{ env.SLACK_REPORT_CONTENT }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_WEBHOOK }}
