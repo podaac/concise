@@ -87,36 +87,37 @@ jobs:
           echo "Failed Content: $(cat ${{ env.OUTPUT_DIR }}/${{ env.OPS_FAILURE_FILE }} | sed 's/$/,/' | tr '\n' ' ')"
       - name: Slack Report update - Add info for UAT check - SUCCESS
         if: |
-            steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true'
+          steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true'
         run: |
           echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\nTesting!!\n\nJupyter-test UAT result: SUCCESS\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}\n" >> $GITHUB_ENV
       - name: Slack Report update - Add info for UAT check - FAILURE
         if: |
-            steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true'
+          steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true'
         run: |
+          echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\nJupyter-test UAT result: FAILURE\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}\n" >> $GITHUB_ENV
           ${{ env.SLACK_REPORT_CONTENT }} += "Jupyter-test UAT result: FAILURE\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}\n"
       - name: Slack Report update - Add info for OPS check - SUCCESS
         if: |
-            steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true'
+          steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true'
         run: |
-          ${{ env.SLACK_REPORT_CONTENT }} += "Jupyter-test OPS result: SUCCESS\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.SUCCESS_CONTENT }}\n"
+          echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\nJupyter-test OPS result: SUCCESS\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.SUCCESS_CONTENT }}\n" >> $GITHUB_ENV
       - name: Slack Report update - Add info for OPS check - FAILURE
         if: |
-            steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
+          steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
         run: |
-          ${{ env.SLACK_REPORT_CONTENT }} +=  "Jupyter-test OPS result: FAILURE\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.FAIL_CONTENT }}\n"
+          echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\nJupyter-test OPS result: FAILURE\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.FAIL_CONTENT }}\n" >> $GITHUB_ENV
       - name: Slack Report update - Add action link on Failure
         if: |
-            steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true' ||
-            steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true' ||
-            steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
+          steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true' ||
+          steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true' ||
+          steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
         run: |
-          echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\nExecution link:\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>" >> $GITHUB_ENV
+          echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\nExecution link:\ngithub.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
           echo ${{ env.SLACK_REPORT_CONTENT }}
       - name: Send Report to Slack
         uses: slackapi/slack-github-action@v1.21.0
         if: |
-            env.SLACK_REPORT_CONTENT != ''
+          env.SLACK_REPORT_CONTENT != ''
         with:
           payload: |
             {
