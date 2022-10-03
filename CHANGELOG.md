@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Some log formatting for jupyter-test workflow
   - PODAAC-4660
     - Updated cmr-umm-updater to newer version and added input argument to disable association removal
+  - PODAAC-4976
+    - Added dateutil dependency to Jupyter-test workflow
 ### Changed 
 ### Deprecated 
 ### Removed
