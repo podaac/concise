@@ -49,6 +49,7 @@ jobs:
           pip3 install git+https://github.com/nasa/harmony-py.git
           pip3 install git+https://github.com/podaac/cmr-umm-updater.git
           pip3 install git+https://github.com/podaac/cmr-association-diff.git@6193079a14e36f4c9526aa426015c2b6be41f0e2
+          pip3 install python-dateutil --upgrade
       - name: Run CMR Association diff scripts
         run: |
           cmr_association_diff -e uat -t service -a "cmr/uat_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o ${{ env.UAT_OUTPUT_FILE }} --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
