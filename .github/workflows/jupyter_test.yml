@@ -96,7 +96,6 @@ jobs:
           steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true'
         run: |
           echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\nJupyter-test UAT result: FAILURE\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}\n" >> $GITHUB_ENV
-          ${{ env.SLACK_REPORT_CONTENT }} += "Jupyter-test UAT result: FAILURE\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}\n"
       - name: Slack Report update - Add info for OPS check - SUCCESS
         if: |
           steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true'
