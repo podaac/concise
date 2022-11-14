@@ -55,6 +55,7 @@ def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logg
             logger.error("Exception running multicore try running as single core")
             _run_single_core(merged_dataset, file_list, var_info, max_dims)
 
+
 def _run_single_core(merged_dataset, file_list, var_info, max_dims):
     """
     Run the variable merge in the current thread/single-core mode
