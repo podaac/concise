@@ -49,8 +49,11 @@ def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logg
         # Merging is bottlenecked at the write process which is single threaded
         # so spinning up more than 2 processes for read/write won't scale the
         # optimization
-        _run_multi_core(merged_dataset, file_list, var_info, max_dims, 2, logger)
-
+        try:
+            _run_multi_core(merged_dataset, file_list, var_info, max_dims, 2, logger)
+        except RuntimeError:
+            logger.error("Exception running multicore try running as single core")
+            _run_single_core(merged_dataset, file_list, var_info, max_dims)
 
 def _run_single_core(merged_dataset, file_list, var_info, max_dims):
     """
