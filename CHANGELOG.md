@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Updated cmr-umm-updater to newer version and added input argument to disable association removal
   - PODAAC-4976
     - Added dateutil dependency to Jupyter-test workflow
+  - PODAAC-5065
+    - Retry concise with single core if parallel core processing fails
 ### Changed 
 ### Deprecated 
 ### Removed
