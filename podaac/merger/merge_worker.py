@@ -8,6 +8,7 @@ import os
 import shutil
 import netCDF4 as nc
 import numpy as np
+import math
 
 from podaac.merger.path_utils import resolve_dim, resolve_group
 
@@ -24,6 +25,34 @@ def shared_memory_size():
         default_memory_size = os.getenv("SHARED_MEMORY_SIZE", "60000000")
         return int(default_memory_size)
 
+def max_var_memory(file_list, var_info):
+    """
+    function to get the maximum shared memory that will be used for variables
+    
+    Parameters
+    ----------
+    file_list : list
+        List of file paths to be processed
+    var_info : dict
+        Dictionary of variable paths and associated VariableInfo
+    """
+
+    max_var_mem = 0
+    for i, file in enumerate(file_list):
+        with nc.Dataset(file, 'r') as origin_dataset:
+
+            for var_path, var_meta in var_info.items():
+                ds_group, var_name = resolve_group(origin_dataset, var_path)
+                ds_var = ds_group.variables.get(var_name)
+                if ds_var is None:
+                    target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
+                    var_size = math.prod(target_shape) * var_meta.fill_value
+                    max_var_mem = max(var_size, max_var_mem)
+                else:
+                    var_size = math.prod(ds_var.shape) * var_meta.fill_value.nbytes
+                    max_var_mem = max(var_size, max_var_mem)
+
+    return max_var_mem
 
 def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logger):
     """
@@ -49,12 +78,14 @@ def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logg
         # Merging is bottlenecked at the write process which is single threaded
         # so spinning up more than 2 processes for read/write won't scale the
         # optimization
-        try:
-            _run_multi_core(merged_dataset, file_list, var_info, max_dims, 2, logger)
-        except RuntimeError:
-            logger.error("Exception running multicore try running as single core")
-            _run_single_core(merged_dataset, file_list, var_info, max_dims)
 
+        max_var_mem = max_var_memory(file_list, var_info)
+        max_memory_size = round(shared_memory_size() * .95)
+
+        if max_var_mem < max_memory_size:
+            _run_multi_core(merged_dataset, file_list, var_info, max_dims, 2, logger)
+        else:
+            _run_single_core(merged_dataset, file_list, var_info, max_dims)
 
 def _run_single_core(merged_dataset, file_list, var_info, max_dims):
     """
@@ -71,6 +102,8 @@ def _run_single_core(merged_dataset, file_list, var_info, max_dims):
     max_dims : dict
         Dictionary of dimension paths and maximum dimensions found during preprocessing
     """
+
+    logger.info("Running single core ......")
     for i, file in enumerate(file_list):
         with nc.Dataset(file, 'r') as origin_dataset:
             origin_dataset.set_auto_maskandscale(False)

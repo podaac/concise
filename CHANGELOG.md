@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - PODAAC-4976
     - Added dateutil dependency to Jupyter-test workflow
   - PODAAC-5065
-    - Retry concise with single core if parallel core processing fails
+    - Calculate how much shared memory will be used and determine to use multicore or singlecore concise.
 ### Changed 
 ### Deprecated 
 ### Removed
