@@ -45,12 +45,13 @@ def max_var_memory(file_list, var_info, max_dims):
             for var_path, var_meta in var_info.items():
                 ds_group, var_name = resolve_group(origin_dataset, var_path)
                 ds_var = ds_group.variables.get(var_name)
+
                 if ds_var is None:
                     target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
-                    var_size = math.prod(target_shape) * var_meta.fill_value
+                    var_size = math.prod(target_shape) * var_meta.datatype.itemsize
                     max_var_mem = max(var_size, max_var_mem)
                 else:
-                    var_size = math.prod(ds_var.shape) * var_meta.fill_value.nbytes
+                    var_size = math.prod(ds_var.shape) * var_meta.datatype.itemsize
                     max_var_mem = max(var_size, max_var_mem)
 
     return max_var_mem
