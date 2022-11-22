@@ -1,5 +1,6 @@
 """Preprocessing methods and the utilities to automagically run them in single-thread/multiprocess modes"""
 
+import math
 import multiprocessing
 from multiprocessing.shared_memory import SharedMemory
 import queue
@@ -8,7 +9,6 @@ import os
 import shutil
 import netCDF4 as nc
 import numpy as np
-import math
 
 from podaac.merger.path_utils import resolve_dim, resolve_group
 
@@ -25,10 +25,11 @@ def shared_memory_size():
         default_memory_size = os.getenv("SHARED_MEMORY_SIZE", "60000000")
         return int(default_memory_size)
 
-def max_var_memory(file_list, var_info):
+
+def max_var_memory(file_list, var_info, max_dims):
     """
     function to get the maximum shared memory that will be used for variables
-    
+
     Parameters
     ----------
     file_list : list
@@ -38,7 +39,7 @@ def max_var_memory(file_list, var_info):
     """
 
     max_var_mem = 0
-    for i, file in enumerate(file_list):
+    for file in file_list:
         with nc.Dataset(file, 'r') as origin_dataset:
 
             for var_path, var_meta in var_info.items():
@@ -53,6 +54,7 @@ def max_var_memory(file_list, var_info):
                     max_var_mem = max(var_size, max_var_mem)
 
     return max_var_mem
+
 
 def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logger):
     """
@@ -73,21 +75,22 @@ def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logg
     """
 
     if process_count == 1:
-        _run_single_core(merged_dataset, file_list, var_info, max_dims)
+        _run_single_core(merged_dataset, file_list, var_info, max_dims, logger)
     else:
         # Merging is bottlenecked at the write process which is single threaded
         # so spinning up more than 2 processes for read/write won't scale the
         # optimization
 
-        max_var_mem = max_var_memory(file_list, var_info)
+        max_var_mem = max_var_memory(file_list, var_info, max_dims)
         max_memory_size = round(shared_memory_size() * .95)
 
         if max_var_mem < max_memory_size:
             _run_multi_core(merged_dataset, file_list, var_info, max_dims, 2, logger)
         else:
-            _run_single_core(merged_dataset, file_list, var_info, max_dims)
+            _run_single_core(merged_dataset, file_list, var_info, max_dims, logger)
 
-def _run_single_core(merged_dataset, file_list, var_info, max_dims):
+
+def _run_single_core(merged_dataset, file_list, var_info, max_dims, logger):
     """
     Run the variable merge in the current thread/single-core mode
 
