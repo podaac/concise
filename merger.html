@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>merger package &mdash; podaac-concise 0.5.0a1 documentation</title>
+  <title>merger package &mdash; podaac-concise 0.6.0a13 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="index.html" class="icon icon-home"> podaac-concise
           </a>
               <div class="version">
-                0.5.0a1
+                0.6.0a13
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -167,6 +167,20 @@ granule. Named in reference to original Java implementation.</p>
 <section id="module-merger.merge_worker">
 <span id="merger-merge-worker-module"></span><h2>merger.merge_worker module<a class="headerlink" href="#module-merger.merge_worker" title="Permalink to this headline"></a></h2>
 <p>Preprocessing methods and the utilities to automagically run them in single-thread/multiprocess modes</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.merge_worker.max_var_memory">
+<span class="sig-prename descclassname"><span class="pre">merger.merge_worker.</span></span><span class="sig-name descname"><span class="pre">max_var_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dims</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/merge_worker.html#max_var_memory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.merge_worker.max_var_memory" title="Permalink to this definition"></a></dt>
+<dd><p>function to get the maximum shared memory that will be used for variables</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_list</strong> (<em>list</em>) – List of file paths to be processed</p></li>
+<li><p><strong>var_info</strong> (<em>dict</em>) – Dictionary of variable paths and associated VariableInfo</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="merger.merge_worker.resize_var">
 <span class="sig-prename descclassname"><span class="pre">merger.merge_worker.</span></span><span class="sig-name descname"><span class="pre">resize_var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dims</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/merge_worker.html#resize_var"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.merge_worker.resize_var" title="Permalink to this definition"></a></dt>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>merger.merge_worker &mdash; podaac-concise 0.5.0a1 documentation</title>
+  <title>merger.merge_worker &mdash; podaac-concise 0.6.0a13 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -27,7 +27,7 @@
             <a href="../../index.html" class="icon icon-home"> podaac-concise
           </a>
               <div class="version">
-                0.5.0a1
+                0.6.0a13
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -69,6 +69,7 @@
   <h1>Source code for merger.merge_worker</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Preprocessing methods and the utilities to automagically run them in single-thread/multiprocess modes&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="kn">from</span> <span class="nn">multiprocessing.shared_memory</span> <span class="kn">import</span> <span class="n">SharedMemory</span>
 <span class="kn">import</span> <span class="nn">queue</span>
@@ -94,6 +95,37 @@
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">default_memory_size</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="max_var_memory"><a class="viewcode-back" href="../../merger.html#merger.merge_worker.max_var_memory">[docs]</a><span class="k">def</span> <span class="nf">max_var_memory</span><span class="p">(</span><span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    function to get the maximum shared memory that will be used for variables</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_list : list</span>
+<span class="sd">        List of file paths to be processed</span>
+<span class="sd">    var_info : dict</span>
+<span class="sd">        Dictionary of variable paths and associated VariableInfo</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">max_var_mem</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">file_list</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">origin_dataset</span><span class="p">:</span>
+
+            <span class="k">for</span> <span class="n">var_path</span><span class="p">,</span> <span class="n">var_meta</span> <span class="ow">in</span> <span class="n">var_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">ds_group</span><span class="p">,</span> <span class="n">var_name</span> <span class="o">=</span> <span class="n">resolve_group</span><span class="p">(</span><span class="n">origin_dataset</span><span class="p">,</span> <span class="n">var_path</span><span class="p">)</span>
+                <span class="n">ds_var</span> <span class="o">=</span> <span class="n">ds_group</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">var_name</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">ds_var</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">target_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">max_dims</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="n">dim</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">var_meta</span><span class="o">.</span><span class="n">dim_order</span><span class="p">)</span>
+                    <span class="n">var_size</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">target_shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">var_meta</span><span class="o">.</span><span class="n">datatype</span><span class="o">.</span><span class="n">itemsize</span>
+                    <span class="n">max_var_mem</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">var_size</span><span class="p">,</span> <span class="n">max_var_mem</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">var_size</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">ds_var</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">var_meta</span><span class="o">.</span><span class="n">datatype</span><span class="o">.</span><span class="n">itemsize</span>
+                    <span class="n">max_var_mem</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">var_size</span><span class="p">,</span> <span class="n">max_var_mem</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">max_var_mem</span></div>
+
+
 <div class="viewcode-block" id="run_merge"><a class="viewcode-back" href="../../merger.html#merger.merge_worker.run_merge">[docs]</a><span class="k">def</span> <span class="nf">run_merge</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="n">process_count</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Automagically run merging in an optimized mode determined by the environment</span>
@@ -113,15 +145,22 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">process_count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">_run_single_core</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">)</span>
+        <span class="n">_run_single_core</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Merging is bottlenecked at the write process which is single threaded</span>
         <span class="c1"># so spinning up more than 2 processes for read/write won&#39;t scale the</span>
         <span class="c1"># optimization</span>
-        <span class="n">_run_multi_core</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span></div>
+
+        <span class="n">max_var_mem</span> <span class="o">=</span> <span class="n">max_var_memory</span><span class="p">(</span><span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">)</span>
+        <span class="n">max_memory_size</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">shared_memory_size</span><span class="p">()</span> <span class="o">*</span> <span class="mf">.95</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">max_var_mem</span> <span class="o">&lt;</span> <span class="n">max_memory_size</span><span class="p">:</span>
+            <span class="n">_run_multi_core</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_run_single_core</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">_run_single_core</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_run_single_core</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Run the variable merge in the current thread/single-core mode</span>
 
@@ -136,6 +175,8 @@
 <span class="sd">    max_dims : dict</span>
 <span class="sd">        Dictionary of dimension paths and maximum dimensions found during preprocessing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running single core ......&quot;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">file_list</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">origin_dataset</span><span class="p">:</span>
             <span class="n">origin_dataset</span><span class="o">.</span><span class="n">set_auto_maskandscale</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
