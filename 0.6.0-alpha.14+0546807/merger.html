@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>merger package &mdash; podaac-concise 0.6.0a14+546807 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="merger.harmony package" href="merger.harmony.html" />
+    <link rel="prev" title="podaac" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> podaac-concise
+          </a>
+              <div class="version">
+                0.6.0a14+546807
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">podaac</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">merger package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="merger.harmony.html">merger.harmony package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">podaac-concise</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">podaac</a> &raquo;</li>
+      <li>merger package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/merger.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="merger-package">
+<h1>merger package<a class="headerlink" href="#merger-package" title="Permalink to this headline"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="merger.harmony.html">merger.harmony package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="merger.harmony.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merger.harmony.html#module-merger.harmony.cli">merger.harmony.cli module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merger.harmony.html#module-merger.harmony.download_worker">merger.harmony.download_worker module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merger.harmony.html#module-merger.harmony.service">merger.harmony.service module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merger.harmony.html#module-merger.harmony.util">merger.harmony.util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merger.harmony.html#module-merger.harmony">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-merger.merge">
+<span id="merger-merge-module"></span><h2>merger.merge module<a class="headerlink" href="#module-merger.merge" title="Permalink to this headline"></a></h2>
+<p>Main module containing merge implementation</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.merge.clean_metadata">
+<span class="sig-prename descclassname"><span class="pre">merger.merge.</span></span><span class="sig-name descname"><span class="pre">clean_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/merge.html#clean_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.merge.clean_metadata" title="Permalink to this definition"></a></dt>
+<dd><p>Prepares metadata dictionary for insertion by removing inconsistent entries
+and performing escaping of attribute names</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>metadata</strong> (<em>dict</em>) – dictionary of attribute names and their associated data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.merge.init_dataset">
+<span class="sig-prename descclassname"><span class="pre">merger.merge.</span></span><span class="sig-name descname"><span class="pre">init_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">merged_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_files</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/merge.html#init_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.merge.init_dataset" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize the dataset utilizing data gathered from preprocessing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>merged_dataset</strong> (<em>nc.Dataset</em>) – the dataset to be initialized</p></li>
+<li><p><strong>groups</strong> (<em>list</em>) – list of group names</p></li>
+<li><p><strong>var_info</strong> (<em>dict</em>) – dictionary of variable names and VariableInfo objects</p></li>
+<li><p><strong>max_dims</strong> (<em>dict</em>) – dictionary of dimension names (including path) and their sizes</p></li>
+<li><p><strong>input_files</strong> (<em>list</em>) – list of file paths to be merged</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.merge.is_file_empty">
+<span class="sig-prename descclassname"><span class="pre">merger.merge.</span></span><span class="sig-name descname"><span class="pre">is_file_empty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_group</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/merge.html#is_file_empty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.merge.is_file_empty" title="Permalink to this definition"></a></dt>
+<dd><p>Function to test if a all variable size in a dataset is 0</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.merge.merge_netcdf_files">
+<span class="sig-prename descclassname"><span class="pre">merger.merge.</span></span><span class="sig-name descname"><span class="pre">merge_netcdf_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">original_input_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger=&lt;Logger</span> <span class="pre">merger.merge</span> <span class="pre">(WARNING)&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perf_stats=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_count=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/merge.html#merge_netcdf_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.merge.merge_netcdf_files" title="Permalink to this definition"></a></dt>
+<dd><p>Main entrypoint to merge implementation. Merges n &gt;= 2 granules together as a single
+granule. Named in reference to original Java implementation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_files</strong> (<em>list</em>) – list of string paths to NetCDF4 files to merge</p></li>
+<li><p><strong>output_file</strong> (<em>str</em>) – output path for merged product</p></li>
+<li><p><strong>logger</strong> (<em>logger</em>) – logger object</p></li>
+<li><p><strong>perf_stats</strong> (<em>dict</em>) – dictionary used to store performance stats</p></li>
+<li><p><strong>process_count</strong> (<em>int</em>) – number of processes to run (expected &gt;= 1)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-merger.merge_cli">
+<span id="merger-merge-cli-module"></span><h2>merger.merge_cli module<a class="headerlink" href="#module-merger.merge_cli" title="Permalink to this headline"></a></h2>
+<p>A simple CLI wrapper around the main merge function</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.merge_cli.main">
+<span class="sig-prename descclassname"><span class="pre">merger.merge_cli.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/merge_cli.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.merge_cli.main" title="Permalink to this definition"></a></dt>
+<dd><p>Main CLI entrypoint</p>
+</dd></dl>
+
+</section>
+<section id="module-merger.merge_worker">
+<span id="merger-merge-worker-module"></span><h2>merger.merge_worker module<a class="headerlink" href="#module-merger.merge_worker" title="Permalink to this headline"></a></h2>
+<p>Preprocessing methods and the utilities to automagically run them in single-thread/multiprocess modes</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.merge_worker.max_var_memory">
+<span class="sig-prename descclassname"><span class="pre">merger.merge_worker.</span></span><span class="sig-name descname"><span class="pre">max_var_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dims</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/merge_worker.html#max_var_memory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.merge_worker.max_var_memory" title="Permalink to this definition"></a></dt>
+<dd><p>function to get the maximum shared memory that will be used for variables</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_list</strong> (<em>list</em>) – List of file paths to be processed</p></li>
+<li><p><strong>var_info</strong> (<em>dict</em>) – Dictionary of variable paths and associated VariableInfo</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.merge_worker.resize_var">
+<span class="sig-prename descclassname"><span class="pre">merger.merge_worker.</span></span><span class="sig-name descname"><span class="pre">resize_var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dims</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/merge_worker.html#resize_var"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.merge_worker.resize_var" title="Permalink to this definition"></a></dt>
+<dd><p>Resizes a variable’s data to the maximum dimensions found in preprocessing.
+This method will never downscale a variable and only performs bottom and
+left padding as utilized in the original Java implementation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>var</strong> (<em>nc.Variable</em>) – variable to be resized</p></li>
+<li><p><strong>group_path</strong> (<em>str</em>) – group path to this variable</p></li>
+<li><p><strong>max_dims</strong> (<em>dict</em>) – dictionary of maximum dimensions found during preprocessing</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An ndarray containing the resized data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.merge_worker.run_merge">
+<span class="sig-prename descclassname"><span class="pre">merger.merge_worker.</span></span><span class="sig-name descname"><span class="pre">run_merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">merged_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_count</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/merge_worker.html#run_merge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.merge_worker.run_merge" title="Permalink to this definition"></a></dt>
+<dd><p>Automagically run merging in an optimized mode determined by the environment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>merged_dataset</strong> (<em>nc.Dataset</em>) – Destination dataset of the merge operation</p></li>
+<li><p><strong>file_list</strong> (<em>list</em>) – List of file paths to be processed</p></li>
+<li><p><strong>var_info</strong> (<em>dict</em>) – Dictionary of variable paths and associated VariableInfo</p></li>
+<li><p><strong>max_dims</strong> (<em>dict</em>) – Dictionary of dimension paths and maximum dimensions found during preprocessing</p></li>
+<li><p><strong>process_count</strong> (<em>int</em>) – Number of worker processes to run (expected &gt;= 1)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.merge_worker.shared_memory_size">
+<span class="sig-prename descclassname"><span class="pre">merger.merge_worker.</span></span><span class="sig-name descname"><span class="pre">shared_memory_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/merge_worker.html#shared_memory_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.merge_worker.shared_memory_size" title="Permalink to this definition"></a></dt>
+<dd><p>try to get the shared memory space size by reading the /dev/shm on linux machines</p>
+</dd></dl>
+
+</section>
+<section id="module-merger.path_utils">
+<span id="merger-path-utils-module"></span><h2>merger.path_utils module<a class="headerlink" href="#module-merger.path_utils" title="Permalink to this headline"></a></h2>
+<p>Utilities used throughout the merging implementation to simplify group path resolution
+and generation</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.path_utils.get_group_path">
+<span class="sig-prename descclassname"><span class="pre">merger.path_utils.</span></span><span class="sig-name descname"><span class="pre">get_group_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/path_utils.html#get_group_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.path_utils.get_group_path" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a Unix-like path from a group and resource to be accessed</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>group</strong> (<em>nc.Group</em>) – NetCDF4 group that contains the resource</p></li>
+<li><p><strong>resource</strong> (<em>str</em>) – name of the resource being accessed</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Unix-like path to the resource</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.path_utils.resolve_dim">
+<span class="sig-prename descclassname"><span class="pre">merger.path_utils.</span></span><span class="sig-name descname"><span class="pre">resolve_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/path_utils.html#resolve_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.path_utils.resolve_dim" title="Permalink to this definition"></a></dt>
+<dd><p>Attempt to resolve dim name starting from top-most group going down to the root group</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dims</strong> (<em>dict</em>) – Dictionary of dimensions to be traversed</p></li>
+<li><p><strong>group_path</strong> (<em>str</em>) – the group path from which to start resolving the specific dimension</p></li>
+<li><p><strong>dim_name</strong> (<em>str</em>) – the name of the dim to be resolved</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the size of the dimension requested</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.path_utils.resolve_group">
+<span class="sig-prename descclassname"><span class="pre">merger.path_utils.</span></span><span class="sig-name descname"><span class="pre">resolve_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/path_utils.html#resolve_group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.path_utils.resolve_group" title="Permalink to this definition"></a></dt>
+<dd><p>Resolves a group path into two components: the group and the resource’s name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<em>nc.Dataset</em>) – NetCDF4 Dataset used as the root for all groups</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – the path to the resource</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a tuple of the resolved group and the final path component str respectively</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-merger.preprocess_worker">
+<span id="merger-preprocess-worker-module"></span><h2>merger.preprocess_worker module<a class="headerlink" href="#module-merger.preprocess_worker" title="Permalink to this headline"></a></h2>
+<p>Preprocessing methods and the utilities to automagically run them in single-thread/multiprocess modes</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.preprocess_worker.attr_eq">
+<span class="sig-prename descclassname"><span class="pre">merger.preprocess_worker.</span></span><span class="sig-name descname"><span class="pre">attr_eq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr_2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/preprocess_worker.html#attr_eq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.preprocess_worker.attr_eq" title="Permalink to this definition"></a></dt>
+<dd><p>Helper function to check if one attribute value is equal to another
+(no, a simple == was not working)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>attr_1</strong> (<em>obj</em>) – An attribute value</p></li>
+<li><p><strong>attr_2</strong> (<em>obj</em>) – An attribute value</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.preprocess_worker.construct_history">
+<span class="sig-prename descclassname"><span class="pre">merger.preprocess_worker.</span></span><span class="sig-name descname"><span class="pre">construct_history</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_files</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/preprocess_worker.html#construct_history"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.preprocess_worker.construct_history" title="Permalink to this definition"></a></dt>
+<dd><p>Construct history JSON entry for this concatenation operation
+<a class="reference external" href="https://wiki.earthdata.nasa.gov/display/TRT/In-File+Provenance+Metadata+-+TRT-42">https://wiki.earthdata.nasa.gov/display/TRT/In-File+Provenance+Metadata+-+TRT-42</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_files</strong> (<em>list</em>) – List of input files</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>History JSON constructed for this concat operation</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.preprocess_worker.get_max_dims">
+<span class="sig-prename descclassname"><span class="pre">merger.preprocess_worker.</span></span><span class="sig-name descname"><span class="pre">get_max_dims</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dims</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/preprocess_worker.html#get_max_dims"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.preprocess_worker.get_max_dims" title="Permalink to this definition"></a></dt>
+<dd><p>Aggregates dimensions from each group and creates a dictionary
+of the largest dimension sizes for each group</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>group</strong> (<em>nc.Dataset</em><em>, </em><em>nc.Group</em>) – group to process dimensions from</p></li>
+<li><p><strong>max_dims</strong> (<em>dict</em>) – dictionary which stores dimension paths and associated dimension sizes</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.preprocess_worker.get_metadata">
+<span class="sig-prename descclassname"><span class="pre">merger.preprocess_worker.</span></span><span class="sig-name descname"><span class="pre">get_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/preprocess_worker.html#get_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.preprocess_worker.get_metadata" title="Permalink to this definition"></a></dt>
+<dd><p>Aggregates metadata from various NetCDF4 objects into a dictionary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>group</strong> (<em>nc.Dataset</em><em>, </em><em>nc.Group</em><em>, </em><em>nc.Variable</em>) – the NetCDF4 object to aggregate metadata from</p></li>
+<li><p><strong>metadata</strong> (<em>dict</em>) – a dictionary containing the object name and associated metadata</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.preprocess_worker.get_variable_data">
+<span class="sig-prename descclassname"><span class="pre">merger.preprocess_worker.</span></span><span class="sig-name descname"><span class="pre">get_variable_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_metadata</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/preprocess_worker.html#get_variable_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.preprocess_worker.get_variable_data" title="Permalink to this definition"></a></dt>
+<dd><p>Aggregate variable metadata and attributes. Primarily utilized in process_groups</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>group</strong> (<em>nc.Dataset</em><em>, </em><em>nc.Group</em>) – group associated with this variable</p></li>
+<li><p><strong>var_info</strong> (<em>dict</em>) – dictionary of variable paths and associated VariableInfo</p></li>
+<li><p><strong>var_metadata</strong> (<em>dict</em>) – dictionary of variable paths and associated attribute dictionary</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.preprocess_worker.merge_max_dims">
+<span class="sig-prename descclassname"><span class="pre">merger.preprocess_worker.</span></span><span class="sig-name descname"><span class="pre">merge_max_dims</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">merged_max_dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset_max_dims</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/preprocess_worker.html#merge_max_dims"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.preprocess_worker.merge_max_dims" title="Permalink to this definition"></a></dt>
+<dd><p>Perform aggregation of max_dims. Intended for use in multithreaded
+mode only</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>merged_max_dims</strong> (<em>dict</em>) – Dictionary of the aggregated max_dims</p></li>
+<li><p><strong>subset_max_dims</strong> (<em>dict</em>) – Dictionary of max_dims from one of the worker processes</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.preprocess_worker.merge_metadata">
+<span class="sig-prename descclassname"><span class="pre">merger.preprocess_worker.</span></span><span class="sig-name descname"><span class="pre">merge_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">merged_metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset_metadata</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/preprocess_worker.html#merge_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.preprocess_worker.merge_metadata" title="Permalink to this definition"></a></dt>
+<dd><p>Perform aggregation of metadata. Intended for use in multithreaded
+mode only</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>merged_metadata</strong> (<em>dict</em>) – Dictionary of the aggregated metadata</p></li>
+<li><p><strong>subset_max_dims</strong> (<em>dict</em>) – Dictionary of metadata from one of the worker processes</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.preprocess_worker.process_groups">
+<span class="sig-prename descclassname"><span class="pre">merger.preprocess_worker.</span></span><span class="sig-name descname"><span class="pre">process_groups</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/preprocess_worker.html#process_groups"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.preprocess_worker.process_groups" title="Permalink to this definition"></a></dt>
+<dd><p>Perform preprocessing of a group and recursively process each child group</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent_group</strong> (<em>nc.Dataset</em><em>, </em><em>nc.Group</em>) – current group to be processed</p></li>
+<li><p><strong>group_list</strong> (<em>list</em>) – list of group paths</p></li>
+<li><p><strong>max_dims</strong> (<em>dict</em>) – dictionary which stores dimension paths and associated dimension sizes</p></li>
+<li><p><strong>group_metadata</strong> (<em>dict</em>) – dictionary which stores group paths and their associated attributes</p></li>
+<li><p><strong>var_metadata</strong> (<em>dict</em>) – dictionary of dictionaries which stores variable paths and their associated attributes</p></li>
+<li><p><strong>var_info</strong> (<em>dict</em>) – dictionary of variable paths and associated VariableInfo data</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.preprocess_worker.retrieve_history">
+<span class="sig-prename descclassname"><span class="pre">merger.preprocess_worker.</span></span><span class="sig-name descname"><span class="pre">retrieve_history</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/preprocess_worker.html#retrieve_history"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.preprocess_worker.retrieve_history" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieve history_json field from NetCDF dataset, if it exists</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dataset</strong> (<em>netCDF4.Dataset</em>) – NetCDF Dataset representing a single granule</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>history_json field</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.preprocess_worker.run_preprocess">
+<span class="sig-prename descclassname"><span class="pre">merger.preprocess_worker.</span></span><span class="sig-name descname"><span class="pre">run_preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_count</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/preprocess_worker.html#run_preprocess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.preprocess_worker.run_preprocess" title="Permalink to this definition"></a></dt>
+<dd><p>Automagically run preprocessing in an optimized mode determined by the environment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_list</strong> (<em>list</em>) – List of file paths to be processed</p></li>
+<li><p><strong>process_count</strong> (<em>int</em>) – Number of worker processes to run (expected &gt;= 1)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-merger.variable_info">
+<span id="merger-variable-info-module"></span><h2>merger.variable_info module<a class="headerlink" href="#module-merger.variable_info" title="Permalink to this headline"></a></h2>
+<p>Wrapper used to manage variable metadata</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="merger.variable_info.VariableInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">merger.variable_info.</span></span><span class="sig-name descname"><span class="pre">VariableInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/variable_info.html#VariableInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.variable_info.VariableInfo" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Lightweight wrapper class utilized in granule preprocessing to simply comparisons between
+different variables from different granule sets</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="merger.variable_info.VariableInfo.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#merger.variable_info.VariableInfo.name" title="Permalink to this definition"></a></dt>
+<dd><p>name of the variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="merger.variable_info.VariableInfo.dim_order">
+<span class="sig-name descname"><span class="pre">dim_order</span></span><a class="headerlink" href="#merger.variable_info.VariableInfo.dim_order" title="Permalink to this definition"></a></dt>
+<dd><p>list of dimension names in order</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="merger.variable_info.VariableInfo.datatype">
+<span class="sig-name descname"><span class="pre">datatype</span></span><a class="headerlink" href="#merger.variable_info.VariableInfo.datatype" title="Permalink to this definition"></a></dt>
+<dd><p>the numpy datatype for the data held in the variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>numpy.dtype</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="merger.variable_info.VariableInfo.group_path">
+<span class="sig-name descname"><span class="pre">group_path</span></span><a class="headerlink" href="#merger.variable_info.VariableInfo.group_path" title="Permalink to this definition"></a></dt>
+<dd><p>Unix-like group path to the variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="merger.variable_info.VariableInfo.fill_value">
+<span class="sig-name descname"><span class="pre">fill_value</span></span><a class="headerlink" href="#merger.variable_info.VariableInfo.fill_value" title="Permalink to this definition"></a></dt>
+<dd><p>Value used to fill missing/empty values in variable’s data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-merger">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-merger" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="podaac" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="merger.harmony.html" class="btn btn-neutral float-right" title="merger.harmony package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
