@@ -220,22 +220,30 @@ jobs:
           pull: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      - uses: snyk/actions/setup@master
-        if: |
-          steps.docker-push.conclusion == 'success'
-      - name: Run Snyk on Docker Image
-        if: |
-          steps.docker-push.conclusion == 'success'
-        # Snyk can be used to break the build when it detects vulnerabilities.
-        # In this case we want to upload the issues to GitHub Code Scanning
-        continue-on-error: true
-        run: |
-          snyk test --severity-threshold=high --file=./docker/Dockerfile --sarif-file-output=docker.sarif --docker ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.software_version }}
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      - name: Upload result to GitHub Code Scanning
-        if: |
-          steps.docker-push.conclusion == 'success'
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: ./
+# As of 2023/01/23 these steps below for scanning the Docker image with Snyk are failing. I've tried both the official Snyk
+# action https://github.com/snyk/actions/tree/master/docker and this method below of manually calling the CLI.
+# The error when using the official Snyk action is
+#   "Could not detect package manager for file: ./docker/Dockerfile"
+# The error when trying to run it manually is
+#   "The image does not exist for the current platform"
+# Commenting these steps out for now so they don't fail the build. Will try revisiting again in the future when Snyk is updated.
+# 
+#       - uses: snyk/actions/setup@master
+#         if: |
+#           steps.docker-push.conclusion == 'success'
+#       - name: Run Snyk on Docker Image
+#         if: |
+#           steps.docker-push.conclusion == 'success'
+#         # Snyk can be used to break the build when it detects vulnerabilities.
+#         # In this case we want to upload the issues to GitHub Code Scanning
+#         continue-on-error: true
+#         run: |
+#           snyk test --severity-threshold=high --file=./docker/Dockerfile --sarif-file-output=docker.sarif --docker ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.software_version }}
+#         env:
+#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+#       - name: Upload result to GitHub Code Scanning
+#         if: |
+#           steps.docker-push.conclusion == 'success'
+#         uses: github/codeql-action/upload-sarif@v2
+#         with:
+#           sarif_file: ./
