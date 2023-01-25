@@ -11,14 +11,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated 
 ### Removed
 ### Fixed
+
+
+## [0.6.0]
+
+### Added
+  - PODAAC-4658
+    - Updated jupyter-test workflow to use environment variables
+    - Updated jupyter-test workflow to inlcude slack reporting, collections update and removal
+  - PODAAC-4659
+    - Removed branch restriction from jupyter-test workflow on success notebook pass
+    - Updated token handling for association removal
+    - Some log formatting for jupyter-test workflow
+  - PODAAC-4660
+    - Updated cmr-umm-updater to newer version and added input argument to disable association removal
+  - PODAAC-4976
+    - Added dateutil dependency to Jupyter-test workflow
+  - PODAAC-5065
+    - Calculate how much shared memory will be used and determine to use multicore or singlecore concise.
+### Changed 
+### Deprecated 
+### Removed
+### Fixed
 ### Security
+
 
 ## [0.5.0]
 
 ### Added
-- New github action workflow and Jupyter notebook that can be used for testing the concise service via Harmony
+  - New github action workflow and Jupyter notebook that can be used for testing the concise service via Harmony
+  - PODAAC-4653
+    - New github action workflow and Jupyter notebook that can be used for testing the concise service via Harmony
+  - PODAAC-4656
+    - Added cmr-association-diff import and usage
+    - Added secret usage to workflow
+    - Added FileHandler class
 ### Changed 
-- [issues/34](https://github.com/podaac/concise/issues/34): harmony-service-lib-py version updated to ^1.0.20 to support reading/writing STAC objects to/from S3
+  - [issues/34](https://github.com/podaac/concise/issues/34): harmony-service-lib-py version updated to ^1.0.20 to support reading/writing STAC objects to/from S3
 ### Deprecated 
 ### Removed
 ### Fixed

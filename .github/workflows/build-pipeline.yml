@@ -10,6 +10,8 @@ on:
   workflow_dispatch:
 
 env:
+  POETRY_VERSION: "1.3.1"
+  PYTHON_VERSION: "3.10"
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -21,18 +23,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: ${{ env.PYTHON_VERSION }}
       - name: Install Poetry
-        uses: abatilo/actions-poetry@v2.0.0
+        uses: abatilo/actions-poetry@v2
         with:
-          poetry-version: 1.1.8
+          poetry-version: ${{ env.POETRY_VERSION }}
       - name: Get version
         id: get-version
         run: |
-          echo "::set-output name=current_version::$(poetry version | awk '{print $2}')"
+          echo "current_version=$(poetry version | awk '{print $2}')" >> $GITHUB_OUTPUT
           echo "pyproject_name=$(poetry version | awk '{print $1}')" >> $GITHUB_ENV
       - name: Bump pre-alpha version
         # If triggered by push to a feature branch
@@ -79,9 +81,6 @@ jobs:
         run: |
           poetry run pylint podaac
           poetry run flake8 podaac
-      - name: Install dependencies
-        run: |
-          poetry add --dev papermill
       - name: Test and coverage
         run: |
           poetry run pytest --junitxml=build/reports/pytest.xml --cov=podaac/ --cov-report=xml:build/reports/coverage.xml -m "not aws and not integration" tests/
@@ -99,9 +98,20 @@ jobs:
             -Dsonar.tests=tests/
             -Dsonar.projectName=podaac-concise
             -Dsonar.projectVersion=${{ env.software_version }}
-            -Dsonar.python.version=3.9
+            -Dsonar.python.version=${{ env.PYTHON_VERSION }}
+      - name: Run Snyk as a blocking step
+        uses: snyk/actions/python-3.10@master
+        env:
+            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: >
+              --org=${{ secrets.SNYK_ORG_ID }}
+              --project-name=${{ github.repository }}
+              --severity-threshold=high
+              --fail-on=all
       - name: Run Snyk on Python
-        uses: snyk/actions/python-3.8@master
+        uses: snyk/actions/python-3.10@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
@@ -131,7 +141,7 @@ jobs:
           git tag -a "${{ env.software_version }}" -m "Version ${{ env.software_version }}"
           git push origin "${{ env.software_version }}"
       - name: Publish UMM-S with new version
-        uses: podaac/cmr-umm-updater@0.2.1
+        uses: podaac/cmr-umm-updater@0.2.3
         if: |
           github.ref == 'refs/heads/main'    ||
           startsWith(github.ref, 'refs/heads/release')
@@ -141,6 +151,7 @@ jobs:
           env: ${{ env.venue }}
           version: ${{ env.software_version }}
           timeout: 60
+          disable_removal: 'true'
         env:
           cmr_user: ${{secrets.CMR_USER}}
           cmr_pass: ${{secrets.CMR_PASS}}
@@ -148,7 +159,7 @@ jobs:
         run: |
           poetry run sphinx-build -b html ./docs docs/_build/
       - name: Publish Docs
-        uses: JamesIves/github-pages-deploy-action@4.1.5
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: docs/_build/ # The folder the action should deploy.
@@ -156,7 +167,7 @@ jobs:
       - name: Build Python Artifact
         run: |
           poetry build
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: python-artifact
           path: dist/*
@@ -177,7 +188,7 @@ jobs:
           poetry publish
       - name: Log in to the Container registry
         if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -185,7 +196,7 @@ jobs:
       - name: Extract metadata (tags, labels) for Docker
         if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -198,7 +209,8 @@ jobs:
           ${GITHUB_WORKSPACE}/.github/workflows/wait-for-pypi.py ${{env.pyproject_name}}[harmony]==${{ env.software_version }}
       - name: Build and push Docker image
         if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
-        uses: docker/build-push-action@v2
+        id: docker-push
+        uses: docker/build-push-action@v3
         with:
           context: .
           file: docker/Dockerfile
@@ -208,22 +220,30 @@ jobs:
           pull: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      - name: Run Snyk on Docker Image
-        if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
-        # Snyk can be used to break the build when it detects vulnerabilities.
-        # In this case we want to upload the issues to GitHub Code Scanning
-        continue-on-error: true
-        uses: snyk/actions/docker@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.software_version }}
-          args: >
-            --severity-threshold=high
-            --file=./docker/Dockerfile
-            --sarif-file-output=docker.sarif
-      - name: Upload result to GitHub Code Scanning
-        if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: ./
+# As of 2023/01/23 these steps below for scanning the Docker image with Snyk are failing. I've tried both the official Snyk
+# action https://github.com/snyk/actions/tree/master/docker and this method below of manually calling the CLI.
+# The error when using the official Snyk action is
+#   "Could not detect package manager for file: ./docker/Dockerfile"
+# The error when trying to run it manually is
+#   "The image does not exist for the current platform"
+# Commenting these steps out for now so they don't fail the build. Will try revisiting again in the future when Snyk is updated.
+# 
+#       - uses: snyk/actions/setup@master
+#         if: |
+#           steps.docker-push.conclusion == 'success'
+#       - name: Run Snyk on Docker Image
+#         if: |
+#           steps.docker-push.conclusion == 'success'
+#         # Snyk can be used to break the build when it detects vulnerabilities.
+#         # In this case we want to upload the issues to GitHub Code Scanning
+#         continue-on-error: true
+#         run: |
+#           snyk test --severity-threshold=high --file=./docker/Dockerfile --sarif-file-output=docker.sarif --docker ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.software_version }}
+#         env:
+#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+#       - name: Upload result to GitHub Code Scanning
+#         if: |
+#           steps.docker-push.conclusion == 'success'
+#         uses: github/codeql-action/upload-sarif@v2
+#         with:
+#           sarif_file: ./
