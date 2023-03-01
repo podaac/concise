@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+### Changed 
+### Deprecated 
+### Removed
+### Fixed
+
+
+## [0.6.0]
+
+### Added
   - PODAAC-4658
     - Updated jupyter-test workflow to use environment variables
     - Updated jupyter-test workflow to inlcude slack reporting, collections update and removal
@@ -25,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 ### Fixed
 ### Security
+
 
 ## [0.5.0]
 
