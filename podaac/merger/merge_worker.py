@@ -252,7 +252,7 @@ def _run_worker(in_queue, out_queue, max_dims, var_info, memory_limit, lock):
                     raise RuntimeError(f'Merging failed - MAX MEMORY REACHED: {resized_arr.nbytes}')
 
                 # Limit to how much memory we allocate to max memory size
-                while memory_limit.value + resized_arr.nbytes > max_memory_size and not out_queue.empty():
+                while (memory_limit.value + resized_arr.nbytes) > max_memory_size and resized_arr.nbytes < max_memory_size:
                     time.sleep(.5)
 
                 # Copy resized array to shared memory
