@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 ### Changed 
+  - PODAAC-5065
+    - Update when to sleep when not enough shared memory
 ### Deprecated 
 ### Removed
 ### Fixed
