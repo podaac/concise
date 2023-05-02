@@ -69,6 +69,9 @@ def run():
         collections = FileHandler.get_file_content_list_per_line(inputFile)
         for collection in collections:
 
+            if "POCLOUD" not in collection and venue == "uat":
+                continue
+
             try:
                 print(collection)
                 pm.execute_notebook(
