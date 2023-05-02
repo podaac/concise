@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>merger.harmony package &mdash; podaac-concise 0.7.0a6+bdeda09 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="merger package" href="merger.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> podaac-concise
+          </a>
+              <div class="version">
+                0.7.0a6+bdeda09
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">podaac</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="merger.html">merger package</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">merger.harmony package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">podaac-concise</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">podaac</a></li>
+          <li class="breadcrumb-item"><a href="merger.html">merger package</a></li>
+      <li class="breadcrumb-item active">merger.harmony package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/merger.harmony.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="merger-harmony-package">
+<h1>merger.harmony package<a class="headerlink" href="#merger-harmony-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-merger.harmony.cli">
+<span id="merger-harmony-cli-module"></span><h2>merger.harmony.cli module<a class="headerlink" href="#module-merger.harmony.cli" title="Permalink to this headline"></a></h2>
+<p>A Harmony CLI wrapper around Concise</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.harmony.cli.main">
+<span class="sig-prename descclassname"><span class="pre">merger.harmony.cli.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/harmony/cli.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.harmony.cli.main" title="Permalink to this definition"></a></dt>
+<dd><p>Main Harmony CLI entrypoint</p>
+</dd></dl>
+
+</section>
+<section id="module-merger.harmony.download_worker">
+<span id="merger-harmony-download-worker-module"></span><h2>merger.harmony.download_worker module<a class="headerlink" href="#module-merger.harmony.download_worker" title="Permalink to this headline"></a></h2>
+<p>A utility for downloading multiple granules simultaneously</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.harmony.download_worker.multi_core_download">
+<span class="sig-prename descclassname"><span class="pre">merger.harmony.download_worker.</span></span><span class="sig-name descname"><span class="pre">multi_core_download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">urls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/harmony/download_worker.html#multi_core_download"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.harmony.download_worker.multi_core_download" title="Permalink to this definition"></a></dt>
+<dd><p>A method which automagically scales downloads to the number of CPU
+cores. For further explaination, see documentation on “multi-track
+drifting”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>urls</strong> (<em>list</em>) – list of urls to download</p></li>
+<li><p><strong>destination_dir</strong> (<em>str</em>) – output path for downloaded files</p></li>
+<li><p><strong>access_token</strong> (<em>str</em>) – access token as provided in Harmony input</p></li>
+<li><p><strong>cfg</strong> (<em>dict</em>) – Harmony configuration information</p></li>
+<li><p><strong>process_count</strong> (<em>int</em>) – Number of worker processes to run (expected &gt;= 1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of downloaded files as pathlib.Path objects</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-merger.harmony.service">
+<span id="merger-harmony-service-module"></span><h2>merger.harmony.service module<a class="headerlink" href="#module-merger.harmony.service" title="Permalink to this headline"></a></h2>
+<p>A Harmony service wrapper around the Concise module</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="merger.harmony.service.ConciseService">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">merger.harmony.service.</span></span><span class="sig-name descname"><span class="pre">ConciseService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">catalog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/harmony/service.html#ConciseService"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.harmony.service.ConciseService" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">harmony.adapter.BaseHarmonyAdapter</span></code></p>
+<p>A harmony-service-lib wrapper around the Concise module. This wrapper does
+not support Harmony calls that do not have STAC catalogs as support for
+this behavior is being depreciated in harmony-service-lib</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="merger.harmony.service.ConciseService.invoke">
+<span class="sig-name descname"><span class="pre">invoke</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/harmony/service.html#ConciseService.invoke"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.harmony.service.ConciseService.invoke" title="Permalink to this definition"></a></dt>
+<dd><p>Primary entrypoint into the service wrapper. Overrides BaseHarmonyAdapter.invoke</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="merger.harmony.service.ConciseService.process_catalog">
+<span class="sig-name descname"><span class="pre">process_catalog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">catalog</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pystac.catalog.Catalog</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/harmony/service.html#ConciseService.process_catalog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.harmony.service.ConciseService.process_catalog" title="Permalink to this definition"></a></dt>
+<dd><p>Recursively process a catalog and all its children. Adapted from
+BaseHarmonyAdapter._process_catalog_recursive to specfifically
+support our particular use case for many-to-one</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>catalog</strong> (<em>pystac.Catalog</em><em> or </em><em>pystac.Collection</em>) – a catalog/collection to process for merging</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new catalog containing the results from the merge</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pystac.Catalog</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-merger.harmony.util">
+<span id="merger-harmony-util-module"></span><h2>merger.harmony.util module<a class="headerlink" href="#module-merger.harmony.util" title="Permalink to this headline"></a></h2>
+<p>Misc utility functions</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.harmony.util.get_bbox">
+<span class="sig-prename descclassname"><span class="pre">merger.harmony.util.</span></span><span class="sig-name descname"><span class="pre">get_bbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_bbox</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/harmony/util.html#get_bbox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.harmony.util.get_bbox" title="Permalink to this definition"></a></dt>
+<dd><p>Accumulate bboxes from items to generate a bbox which encompasses all items</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>item</strong> (<em>pystac.Item</em>) – an item to process</p></li>
+<li><p><strong>current_bbox</strong> (<em>list</em>) – the bbox to accumulate all items to</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.harmony.util.get_datetime">
+<span class="sig-prename descclassname"><span class="pre">merger.harmony.util.</span></span><span class="sig-name descname"><span class="pre">get_datetime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datetimes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/harmony/util.html#get_datetime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.harmony.util.get_datetime" title="Permalink to this definition"></a></dt>
+<dd><p>Accumulate datetimes from items to generate a datetime pair that
+encompasses all items</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>item</strong> (<em>pystac.Item</em>) – an item to process</p></li>
+<li><p><strong>datetimes</strong> (<em>list</em>) – datetime pair to accumulate to; first element is start_datetime,
+second is end_datetime</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.harmony.util.get_granule_url">
+<span class="sig-prename descclassname"><span class="pre">merger.harmony.util.</span></span><span class="sig-name descname"><span class="pre">get_granule_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">granule_urls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/harmony/util.html#get_granule_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.harmony.util.get_granule_url" title="Permalink to this definition"></a></dt>
+<dd><p>Processes an item to find a netcdf4-python compatible asset. If no asset is
+found, a RuntimeException is thrown</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>item</strong> (<em>pystac.Item</em>) – an item to process</p></li>
+<li><p><strong>granule_urls</strong> (<em>list</em>) – list to append the asset’s url to</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="merger.harmony.util.is_netcdf_asset">
+<span class="sig-prename descclassname"><span class="pre">merger.harmony.util.</span></span><span class="sig-name descname"><span class="pre">is_netcdf_asset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/merger/harmony/util.html#is_netcdf_asset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merger.harmony.util.is_netcdf_asset" title="Permalink to this definition"></a></dt>
+<dd><p>Determine if an asset is netcdf4-python compatible. netcdf4-python currently supports
+HDF5, NetCDF3, and NetCDF4. Determination is currently done through MIME if strict
+mode is enabled. If strict mode is not enabled, determination is done through ‘data’
+role.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>asset</strong> (<em>pystac.Asset</em>) – an asset to check</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if netcdf4-python compatible; False otherwise</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-merger.harmony">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-merger.harmony" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="merger.html" class="btn btn-neutral float-left" title="merger package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
