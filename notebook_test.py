@@ -67,7 +67,7 @@ def run():
     if path.exists(inputFile):
         venue = Venue.from_str(environment)
         collections = FileHandler.get_file_content_list_per_line(inputFile)
-        # limit number of collections tested to 4
+        # limit number of collections tested to 3
         for collection in itertools.islice(collections, 3):
             if "POCLOUD" not in collection and venue == "uat":
                 continue
