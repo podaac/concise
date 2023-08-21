@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - PODAAC-5424
     - Update concise test in uat to test only POCLOUD collections
 ### Changed 
+  - Issue-68
+    - Updated jupyter notebook
 ### Deprecated 
 ### Removed
 ### Fixed
