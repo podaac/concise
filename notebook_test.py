@@ -135,7 +135,7 @@ def test(collection_id, venue):
 
     for group in groups:
         try:
-            ds = xr.open_dataset(filename, group=group, decode_times=False)
+            ds = xr.open_dataset(filename, group=group, decode_times=False, drop_variables=drop_variables)
         except xr.core.variable.MissingDimensionsError:
             ds = xr.open_dataset(filename, group=group, decode_times=False, drop_variables=drop_variables)
 
