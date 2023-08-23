@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import netCDF4 as nc
 import xarray as xr
 from harmony import BBox, Client, Collection, Request, Environment
-#import papermill as pm
 import argparse
 
 from os import path
@@ -106,11 +105,9 @@ def test(collection_id, venue):
 
     print('\nWaiting for the job to finish')
 
-    #harmony_client.wait_for_processing(job1_id)
     results = harmony_client.result_json(job1_id)
 
     print('\nDownloading results:')
-    #filename = harmony_client.download_all(job1_id, overwrite=True)[0].result()
 
     futures = harmony_client.download_all(job1_id)
     file_names = [f.result() for f in futures]
@@ -134,10 +131,8 @@ def test(collection_id, venue):
         groups = [None]
 
     for group in groups:
-        try:
-            ds = xr.open_dataset(filename, group=group, decode_times=False, drop_variables=drop_variables)
-        except xr.core.variable.MissingDimensionsError:
-            ds = xr.open_dataset(filename, group=group, decode_times=False, drop_variables=drop_variables)
+
+        ds = xr.open_dataset(filename, group=group, decode_times=False, drop_variables=drop_variables)
 
         assert len(ds.coords['subset_index']) == max_results
         variables = list(ds.variables)
@@ -204,9 +199,6 @@ def run():
     inputFile = _args.input_file
     output_location = _args.output_path if _args.output_path else '.'
 
-    #notebook_path = path.realpath(path.dirname(notebook))
-    #notebook_name = path.basename(notebook)
-
     success = []
     fails = []
 
@@ -221,13 +213,7 @@ def run():
 
             try:
                 print(collection)
-
                 test(collection, venue.name)
-                # pm.execute_notebook(
-                #   notebook,
-                #   f"{notebook_path}/output/{collection}_{environment}_output_{notebook_name}",
-                #   parameters=dict(collection_id=collection, venue=venue.name)
-                # )
                 success.append(collection)
             except Exception as ex:
                 print(ex)
