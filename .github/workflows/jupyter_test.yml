@@ -1,5 +1,5 @@
 # This is a test pipeline, that verifies and updates the associations in cmr
-name: Jupyter Test
+name: Add Collection Test
 # Controls when the workflow will run
 on:
   # Allows you to run this workflow manually from the Actions tab
@@ -40,9 +40,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install --upgrade pip
-          pip3 install papermill
           pip3 install xarray
-          pip3 install jupyter
           pip3 install black
           pip3 install matplotlib
           pip3 install netCDF4
@@ -54,10 +52,10 @@ jobs:
         run: |
           cmr_association_diff -e uat -t service -a "cmr/uat_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o ${{ env.UAT_OUTPUT_FILE }} --token ${{ secrets.LAUNCHPAD_TOKEN_UAT }}
           cmr_association_diff -e ops -t service -a "cmr/ops_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o ${{ env.OPS_OUTPUT_FILE }} --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
-      - name: Run Jupyter notebooks
+      - name: Run Add Collection Test
         run: |
-          python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e uat -i ${{ env.UAT_OUTPUT_FILE }} -o ${{ env.OUTPUT_DIR }}
-          python3 "notebook_test.py" -n "jupyter_notebooks/harmony_concise_api_test.ipynb" -e ops -i ${{ env.OPS_OUTPUT_FILE }} -o ${{ env.OUTPUT_DIR }}
+          python3 "add_collection_test.py" -e uat -i ${{ env.UAT_OUTPUT_FILE }} -o ${{ env.OUTPUT_DIR }}
+          python3 "add_collection_test.py" -e ops -i ${{ env.OPS_OUTPUT_FILE }} -o ${{ env.OUTPUT_DIR }}
       - name: Check UAT files
         id: check_UAT_output_files
         run: |
@@ -90,22 +88,22 @@ jobs:
         if: |
           steps.check_UAT_output_files.outputs.SUCCESS_EXISTS == 'true'
         run: |
-          echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\nJupyter-test UAT result: SUCCESS\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}\n" >> $GITHUB_ENV
+          echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\ncollection-test UAT result: SUCCESS\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.SUCCESS_CONTENT }}\n" >> $GITHUB_ENV
       - name: Slack Report update - Add info for UAT check - FAILURE
         if: |
           steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true'
         run: |
-          echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\nJupyter-test UAT result: FAILURE\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}\n" >> $GITHUB_ENV
+          echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\ncollection-test UAT result: FAILURE\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_UAT_output_files.outputs.FAIL_CONTENT }}\n" >> $GITHUB_ENV
       - name: Slack Report update - Add info for OPS check - SUCCESS
         if: |
           steps.check_OPS_output_files.outputs.SUCCESS_EXISTS == 'true'
         run: |
-          echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\nJupyter-test OPS result: SUCCESS\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.SUCCESS_CONTENT }}\n" >> $GITHUB_ENV
+          echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\ncollection-test OPS result: SUCCESS\nSuccessfully ran Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.SUCCESS_CONTENT }}\n" >> $GITHUB_ENV
       - name: Slack Report update - Add info for OPS check - FAILURE
         if: |
           steps.check_OPS_output_files.outputs.FAIL_EXISTS == 'true'
         run: |
-          echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\nJupyter-test OPS result: FAILURE\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.FAIL_CONTENT }}\n" >> $GITHUB_ENV
+          echo "SLACK_REPORT_CONTENT=${{ env.SLACK_REPORT_CONTENT }}\ncollection-test OPS result: FAILURE\nFailed to run Concise Notebook on the following collections:\n${{ steps.check_OPS_output_files.outputs.FAIL_CONTENT }}\n" >> $GITHUB_ENV
       - name: Slack Report update - Add action link on Failure
         if: |
           steps.check_UAT_output_files.outputs.FAIL_EXISTS == 'true' ||
