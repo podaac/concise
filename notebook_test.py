@@ -106,7 +106,7 @@ def test(collection_id, venue):
 
     print('\nWaiting for the job to finish')
 
-    harmony_client.wait_for_processing(job1_id, show_progress=True)
+    #harmony_client.wait_for_processing(job1_id)
     results = harmony_client.result_json(job1_id)
 
     print('\nDownloading results:')
