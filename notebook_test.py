@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import netCDF4 as nc
 import xarray as xr
 from harmony import BBox, Client, Collection, Request, Environment
-import papermill as pm
+#import papermill as pm
 import argparse
 
 from os import path
