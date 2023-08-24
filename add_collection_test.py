@@ -51,9 +51,9 @@ def parse_args():
 
 
 def get_username_and_password(venue):
-    if venue == "UAT":
+    if venue.lower() == "uat":
         return os.environ.get("UAT_USERNAME"), os.environ.get("UAT_PASSWORD")
-    elif venue == "OPS":
+    elif venue.lower() == "ops":
         return os.environ.get('OPS_USERNAME'), os.environ.get('OPS_PASSWORD')
     else:
         raise ValueError("Invalid venue")
