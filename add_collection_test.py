@@ -151,39 +151,22 @@ def test(collection_id, venue):
     if x_var is None or y_var is None:
         raise Exception("Lon and Lat variables are not found")
 
-#    for index in range(0, max_results):
-#        ax = ds.isel(subset_index=index).plot.scatter(
-#            y=y_var,
-#            x=x_var,
-#            hue=variable,
-#            s=1,
-#            levels=9,
-#            cmap="jet",
-#            aspect=2.5,
-#            size=9
-#        )
-#        plt.xlim(0., 360.)
-#        plt.ylim(-90., 90.)
-#        plt.show(block=False)
-#        plt.close(ax.figure)
-#
-#    ax = ds.plot.scatter(
-#        y=y_var,
-#        x=x_var,
-#        hue=variable,
-#        s=1,
-#        levels=9,
-#        cmap="jet",
-#        aspect=2.5,
-#        size=9
-#    )
-#    plt.xlim(0., 360.)
-#    plt.ylim(-90., 90.)
-#    plt.show(block=False)
-#    plt.close(ax.figure)
-#
-#    ds.close()
-
+    for index in range(0, max_results):
+        ax = ds.isel(subset_index=index).plot.scatter(
+            y=y_var,
+            x=x_var,
+            hue=variable,
+            s=1,
+            levels=9,
+            cmap="jet",
+            aspect=2.5,
+            size=9
+        )
+        plt.xlim(0., 360.)
+        plt.ylim(-90., 90.)
+        plt.show(block=False)
+        plt.clf()
+        plt.close(ax.figure)
 
 def run():
     """
