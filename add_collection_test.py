@@ -235,4 +235,4 @@ def run():
 
 if __name__ == '__main__':
     print("Start running test .......")
-    #run()
+    run()
