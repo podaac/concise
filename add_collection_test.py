@@ -164,7 +164,7 @@ def test(collection_id, venue):
         )
         plt.xlim(0., 360.)
         plt.ylim(-90., 90.)
-        plt.show(block=False)
+        #plt.show(block=False)
         plt.clf()
         plt.close(ax.figure)
 
