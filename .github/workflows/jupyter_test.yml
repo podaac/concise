@@ -1,5 +1,5 @@
 # This is a test pipeline, that verifies and updates the associations in cmr
-name: Add Collection Test
+name: Add Collection Test OLD
 # Controls when the workflow will run
 on:
   # Allows you to run this workflow manually from the Actions tab
