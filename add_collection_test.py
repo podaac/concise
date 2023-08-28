@@ -237,7 +237,12 @@ def test(collection_id, venue):
 
     for file in original_files:
 
-        file_name = file.rsplit(".", 1)[0]
+        # if the file name end in an alphabet so we know there is some extension
+        if file[-1].isalpha():
+            file_name = file.rsplit(".", 1)[0]
+        else:
+            file_name = file
+            
         print(file_name)
         cmr_query = f"{cmr_base_url}{file_name}&collection_concept_id={collection_id}"
         print(cmr_query)
