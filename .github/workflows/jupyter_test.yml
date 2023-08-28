@@ -40,9 +40,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install --upgrade pip
-          pip3 install xarray
           pip3 install black
-          pip3 install matplotlib
           pip3 install netCDF4
           pip3 install git+https://github.com/nasa/harmony-py.git
           pip3 install git+https://github.com/podaac/cmr-umm-updater.git

@@ -1,15 +1,15 @@
 import os
-import matplotlib.pyplot as plt
+from os import path
+from urllib.parse import urlparse
+import itertools
+import unittest
+import numpy as np
 import netCDF4 as nc
-import xarray as xr
+import requests
 from harmony import BBox, Client, Collection, Request, Environment
 import argparse
-
-from os import path
-
 from utils import FileHandler
 from utils.enums import Venue
-import itertools
 
 
 def parse_args():
@@ -75,12 +75,115 @@ def get_x_y_variables(variables):
     return x_var, y_var
 
 
+def verify_dims(merged_group, origin_group, both_merged):
+    for dim in origin_group.dimensions:
+        if both_merged:
+            unittest.TestCase().assertEqual(merged_group.dimensions[dim].size, origin_group.dimensions[dim].size)
+        else:
+            unittest.TestCase().assertGreaterEqual(merged_group.dimensions[dim].size, origin_group.dimensions[dim].size)
+
+
+def verify_attrs(merged_obj, origin_obj, both_merged):
+    ignore_attributes = [
+        'request-bounding-box', 'request-bounding-box-description', 'PODAAC-dataset-shortname',
+        'PODAAC-persistent-ID', 'time_coverage_end', 'time_coverage_start'
+    ]
+
+    merged_attrs = merged_obj.ncattrs()
+    origin_attrs = origin_obj.ncattrs()
+
+    for attr in origin_attrs:
+        if attr in ignore_attributes:
+            # Skip attributes which are present in the Java implementation,
+            # but not (currently) present in the Python implementation
+            continue
+
+        if not both_merged and attr not in merged_attrs:
+            # Skip attributes which are not present in both merged and origin.
+            # This is normal operation as some attributes may be omited b/c
+            # they're inconsistent between granules
+            continue
+
+        merged_attr = merged_obj.getncattr(attr)
+        if both_merged and isinstance(merged_attr, int):
+            # Skip integer values - the Java implementation seems to omit
+            # these values due to its internal handling of all values as
+            # Strings
+            continue
+
+        origin_attr = origin_obj.getncattr(attr)
+        if isinstance(origin_attr, np.ndarray):
+            unittest.TestCase().assertTrue(np.array_equal(merged_attr, origin_attr))
+        else:
+            if attr != "history_json":
+                unittest.TestCase().assertEqual(merged_attr, origin_attr)
+
+
+def verify_variables(merged_group, origin_group, subset_index, both_merged):
+    for var in origin_group.variables:
+        merged_var = merged_group.variables[var]
+        origin_var = origin_group.variables[var]
+
+        verify_attrs(merged_var, origin_var, both_merged)
+
+        if both_merged:
+            # both groups require subset indexes
+            merged_data = merged_var[subset_index[0]]
+            origin_data = origin_var[subset_index[1]]
+        else:
+            # merged group requires a subset index
+            merged_data = np.resize(merged_var[subset_index], origin_var.shape)
+            origin_data = origin_var
+
+        # verify variable data
+        if isinstance(origin_data, str):
+            unittest.TestCase().assertEqual(merged_data, origin_data)
+        else:
+            unittest.TestCase().assertTrue(np.array_equal(merged_data, origin_data, equal_nan=True))
+
+
+def verify_groups(merged_group, origin_group, subset_index, both_merged=False):
+    verify_dims(merged_group, origin_group, both_merged)
+    verify_attrs(merged_group, origin_group, both_merged)
+    verify_variables(merged_group, origin_group, subset_index, both_merged)
+
+    for child_group in origin_group.groups:
+        merged_subgroup = merged_group[child_group]
+        origin_subgroup = origin_group[child_group]
+        verify_groups(merged_subgroup, origin_subgroup, subset_index, both_merged)
+
+
+# GET TOKEN FROM CMR
+def get_token(cmr_root, username, password):
+    token_api = "https://{}/api/users/tokens".format(cmr_root)
+    response = requests.get(token_api, auth=(username, password))
+    content = response.json()
+    if len(content) > 0:
+        return content[0].get('access_token')
+    else:
+        create_token_api = "https://{}/api/users/token".format(cmr_root)
+        response = requests.post(create_token_api, auth=(username, password))
+        content = response.json()
+        return content.get('access_token')
+
+
+def download_file(url, local_path, headers):
+    response = requests.get(url, stream=True, headers=headers)
+    if response.status_code == 200:
+        with open(local_path, 'wb') as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                file.write(chunk)
+        print("Original File downloaded successfully.")
+    else:
+        print(f"Failed to download the file. Status code: {response.status_code}")
+
+
 def test(collection_id, venue):
 
     max_results = 2
 
     username, password = get_username_and_password(venue)
-    environment = Environment.UAT if venue == "UAT" else Environment.PROD
+    environment = Environment.UAT if venue.lower() == "uat" else Environment.PROD
     harmony_client = Client(auth=(username, password), env=environment)
 
     collection = Collection(id=collection_id)
@@ -115,58 +218,45 @@ def test(collection_id, venue):
 
     filename = file_names[0]
     # Handle time dimension and variables dropping
-    dt = nc.Dataset(filename, 'r')
-    groups = list(dt.groups)
-    dt.close()
+    merge_dataset = nc.Dataset(filename, 'r')
 
-    drop_variables = [
-        'time',
-        'sample',
-        'meas_ind',
-        'wvf_ind',
-        'ddm',
-        'averaged_l1'
-    ]
-    if not groups:
-        groups = [None]
+    cmr_base_url = "https://cmr.earthdata.nasa.gov/search/granules.umm_json?readable_granule_name="
+    edl_root = 'urs.earthdata.nasa.gov'
 
-    for group in groups:
+    if venue.lower() == 'uat':
+        cmr_base_url = "https://cmr.uat.earthdata.nasa.gov/search/granules.umm_json?readable_granule_name="
+        edl_root = 'uat.urs.earthdata.nasa.gov'
+    
+    token = get_token(edl_root, username, password)
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
 
-        ds = xr.open_dataset(filename, group=group, decode_times=False, drop_variables=drop_variables)
+    original_files = merge_dataset.variables['subset_files']
+    assert len(original_files) == max_results
 
-        assert len(ds.coords['subset_index']) == max_results
-        variables = list(ds.variables)
-        x_var, y_var = get_x_y_variables(variables)
+    for file in original_files:
 
-        for v in variables:
-            if v not in ['subset_files', 'lat', 'lon', 'latitude', 'longitude', 'beam_clat', 'beam_clon']:
-                variable = v
-                break
+        file_name = file.rsplit(".", 1)[0]
+        print(file_name)
+        cmr_query = f"{cmr_base_url}{file_name}&collection_concept_id={collection_id}"
+        print(cmr_query)
 
-        if x_var is not None and y_var is not None:
-            break
+        response = requests.get(cmr_query, headers=headers)
 
-        ds.close()
+        result = response.json()
+        links = result.get('items')[0].get('umm').get('RelatedUrls')
+        for link in links:
+            if link.get('Type') == 'GET DATA':
+                data_url = link.get('URL')
+                parsed_url = urlparse(data_url)
+                local_file_name = os.path.basename(parsed_url.path)
+                download_file(data_url, local_file_name, headers)
 
-    if x_var is None or y_var is None:
-        raise Exception("Lon and Lat variables are not found")
+    for i, file in enumerate(original_files):
+        origin_dataset = nc.Dataset(file)
+        verify_groups(merge_dataset, origin_dataset, i)
 
-    for index in range(0, max_results):
-        ax = ds.isel(subset_index=index).plot.scatter(
-            y=y_var,
-            x=x_var,
-            hue=variable,
-            s=1,
-            levels=9,
-            cmap="jet",
-            aspect=2.5,
-            size=9
-        )
-        plt.xlim(0., 360.)
-        plt.ylim(-90., 90.)
-        #plt.show(block=False)
-        plt.clf()
-        plt.close(ax.figure)
 
 def run():
     """
@@ -203,17 +293,17 @@ def run():
                 fails.append(collection)
 
         # Create output files
-        #if output_location:
-        #    success_outfile = path.realpath(f'{output_location}/{_args.env}_success.txt')
-        #    fail_outfile = path.realpath(f'{output_location}/{_args.env}_fail.txt')
+         if output_location:
+            success_outfile = path.realpath(f'{output_location}/{_args.env}_success.txt')
+            fail_outfile = path.realpath(f'{output_location}/{_args.env}_fail.txt')
 
-        #    if success:
-        #        with open(success_outfile, 'w') as the_file:
-        #            the_file.writelines(x + '\n' for x in success)
+            if success:
+                with open(success_outfile, 'w') as the_file:
+                    the_file.writelines(x + '\n' for x in success)
 
-        #    if fails:
-        #        with open(fail_outfile, 'w') as the_file:
-        #            the_file.writelines(x + '\n' for x in fails)
+            if fails:
+                with open(fail_outfile, 'w') as the_file:
+                    the_file.writelines(x + '\n' for x in fails)
 
 
 if __name__ == '__main__':
