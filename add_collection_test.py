@@ -226,7 +226,7 @@ def test(collection_id, venue):
     if venue.lower() == 'uat':
         cmr_base_url = "https://cmr.uat.earthdata.nasa.gov/search/granules.umm_json?readable_granule_name="
         edl_root = 'uat.urs.earthdata.nasa.gov'
-    
+
     token = get_token(edl_root, username, password)
     headers = {
         "Authorization": f"Bearer {token}"
@@ -293,7 +293,7 @@ def run():
                 fails.append(collection)
 
         # Create output files
-         if output_location:
+        if output_location:
             success_outfile = path.realpath(f'{output_location}/{_args.env}_success.txt')
             fail_outfile = path.realpath(f'{output_location}/{_args.env}_fail.txt')
 
