@@ -40,9 +40,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install --upgrade pip
-          pip3 install xarray
           pip3 install black
-          pip3 install matplotlib
           pip3 install netCDF4
           pip3 install git+https://github.com/nasa/harmony-py.git
           pip3 install git+https://github.com/podaac/cmr-umm-updater.git
@@ -54,8 +52,8 @@ jobs:
           cmr_association_diff -e ops -t service -a "cmr/ops_associations.txt" -p POCLOUD -n 'PODAAC Concise' -o ${{ env.OPS_OUTPUT_FILE }} --token ${{ secrets.LAUNCHPAD_TOKEN_OPS }}
       - name: Run Add Collection Test
         run: |
-          python3 "add_collection_test.py" -e uat -i ${{ env.UAT_OUTPUT_FILE }} -o ${{ env.OUTPUT_DIR }}
-          python3 "add_collection_test.py" -e ops -i ${{ env.OPS_OUTPUT_FILE }} -o ${{ env.OUTPUT_DIR }}
+          python3 add_collection_test.py -e uat -i ${{ env.UAT_OUTPUT_FILE }} -o ${{ env.OUTPUT_DIR }}
+          python3 add_collection_test.py -e ops -i ${{ env.OPS_OUTPUT_FILE }} -o ${{ env.OUTPUT_DIR }}
       - name: Check UAT files
         id: check_UAT_output_files
         run: |
