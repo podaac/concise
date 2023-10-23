@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>merger.merge &mdash; podaac-concise 0.7.0a21 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> podaac-concise
+          </a>
+              <div class="version">
+                0.7.0a21
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">podaac</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">podaac-concise</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">merger.merge</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for merger.merge</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Main module containing merge implementation&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">perf_counter</span>
+<span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">cpu_count</span>
+<span class="kn">import</span> <span class="nn">netCDF4</span> <span class="k">as</span> <span class="nn">nc</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">podaac.merger.merge_worker</span> <span class="kn">import</span> <span class="n">run_merge</span>
+<span class="kn">from</span> <span class="nn">podaac.merger.path_utils</span> <span class="kn">import</span> <span class="n">get_group_path</span><span class="p">,</span> <span class="n">resolve_dim</span><span class="p">,</span> <span class="n">resolve_group</span>
+<span class="kn">from</span> <span class="nn">podaac.merger.preprocess_worker</span> <span class="kn">import</span> <span class="n">run_preprocess</span>
+
+
+<div class="viewcode-block" id="is_file_empty"><a class="viewcode-back" href="../../merger.html#merger.merge.is_file_empty">[docs]</a><span class="k">def</span> <span class="nf">is_file_empty</span><span class="p">(</span><span class="n">parent_group</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to test if a all variable size in a dataset is 0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">parent_group</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">child_group</span> <span class="ow">in</span> <span class="n">parent_group</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">is_file_empty</span><span class="p">(</span><span class="n">child_group</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="merge_netcdf_files"><a class="viewcode-back" href="../../merger.html#merger.merge.merge_netcdf_files">[docs]</a><span class="k">def</span> <span class="nf">merge_netcdf_files</span><span class="p">(</span><span class="n">original_input_files</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">),</span> <span class="n">perf_stats</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">process_count</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=too-many-locals</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main entrypoint to merge implementation. Merges n &gt;= 2 granules together as a single</span>
+<span class="sd">    granule. Named in reference to original Java implementation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_files: list</span>
+<span class="sd">        list of string paths to NetCDF4 files to merge</span>
+<span class="sd">    output_file: str</span>
+<span class="sd">        output path for merged product</span>
+<span class="sd">    logger: logger</span>
+<span class="sd">        logger object</span>
+<span class="sd">    perf_stats: dict</span>
+<span class="sd">        dictionary used to store performance stats</span>
+<span class="sd">    process_count: int</span>
+<span class="sd">        number of processes to run (expected &gt;= 1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">perf_stats</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">perf_stats</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">process_count</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">process_count</span> <span class="o">=</span> <span class="n">cpu_count</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">process_count</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;process_count should be &gt; 0&#39;</span><span class="p">)</span>
+
+    <span class="c1"># -- initial preprocessing --</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Preprocessing data...&#39;</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+
+    <span class="n">input_files</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># only concatinate files that are not empty</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">original_input_files</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset</span><span class="p">:</span>
+            <span class="n">is_empty</span> <span class="o">=</span> <span class="n">is_file_empty</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">is_empty</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">input_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+    <span class="n">preprocess</span> <span class="o">=</span> <span class="n">run_preprocess</span><span class="p">(</span><span class="n">input_files</span><span class="p">,</span> <span class="n">process_count</span><span class="p">)</span>
+    <span class="n">group_list</span> <span class="o">=</span> <span class="n">preprocess</span><span class="p">[</span><span class="s1">&#39;group_list&#39;</span><span class="p">]</span>
+    <span class="n">max_dims</span> <span class="o">=</span> <span class="n">preprocess</span><span class="p">[</span><span class="s1">&#39;max_dims&#39;</span><span class="p">]</span>
+    <span class="n">var_info</span> <span class="o">=</span> <span class="n">preprocess</span><span class="p">[</span><span class="s1">&#39;var_info&#39;</span><span class="p">]</span>
+    <span class="n">var_metadata</span> <span class="o">=</span> <span class="n">preprocess</span><span class="p">[</span><span class="s1">&#39;var_metadata&#39;</span><span class="p">]</span>
+    <span class="n">group_metadata</span> <span class="o">=</span> <span class="n">preprocess</span><span class="p">[</span><span class="s1">&#39;group_metadata&#39;</span><span class="p">]</span>
+
+    <span class="n">perf_stats</span><span class="p">[</span><span class="s1">&#39;preprocess&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Preprocessing completed: </span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">perf_stats</span><span class="p">[</span><span class="s1">&#39;preprocess&#39;</span><span class="p">])</span>
+
+    <span class="n">merged_dataset</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;NETCDF4&#39;</span><span class="p">)</span>
+    <span class="n">merged_dataset</span><span class="o">.</span><span class="n">set_auto_maskandscale</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">init_dataset</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">group_list</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="n">input_files</span><span class="p">)</span>
+
+    <span class="c1"># -- merge datasets --</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Merging datasets...&#39;</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+    <span class="n">run_merge</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">input_files</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="n">process_count</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+
+    <span class="n">perf_stats</span><span class="p">[</span><span class="s1">&#39;merge&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Merging completed: </span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">perf_stats</span><span class="p">[</span><span class="s1">&#39;merge&#39;</span><span class="p">])</span>
+
+    <span class="c1"># -- finalize metadata --</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Finalizing metadata...&#39;</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">group_path</span> <span class="ow">in</span> <span class="n">group_list</span><span class="p">:</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="n">merged_dataset</span> <span class="k">if</span> <span class="n">group_path</span> <span class="o">==</span> <span class="s1">&#39;/&#39;</span> <span class="k">else</span> <span class="n">merged_dataset</span><span class="p">[</span><span class="n">group_path</span><span class="p">]</span>
+
+        <span class="n">group_attrs</span> <span class="o">=</span> <span class="n">group_metadata</span><span class="p">[</span><span class="n">group_path</span><span class="p">]</span>
+        <span class="n">clean_metadata</span><span class="p">(</span><span class="n">group_attrs</span><span class="p">)</span>
+        <span class="n">group</span><span class="o">.</span><span class="n">setncatts</span><span class="p">(</span><span class="n">group_attrs</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">group</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;subset_files&#39;</span> <span class="ow">and</span> <span class="n">group</span> <span class="o">==</span> <span class="n">merged_dataset</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># Skip /subset_files for metadata finalization</span>
+
+            <span class="n">var_path</span> <span class="o">=</span> <span class="n">get_group_path</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">var_attrs</span> <span class="o">=</span> <span class="n">var_metadata</span><span class="p">[</span><span class="n">var_path</span><span class="p">]</span>
+            <span class="n">clean_metadata</span><span class="p">(</span><span class="n">var_attrs</span><span class="p">)</span>
+            <span class="n">var</span><span class="o">.</span><span class="n">setncatts</span><span class="p">(</span><span class="n">var_attrs</span><span class="p">)</span>
+
+    <span class="n">perf_stats</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Metadata completed: </span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">perf_stats</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">])</span>
+
+    <span class="n">merged_dataset</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Done!&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="clean_metadata"><a class="viewcode-back" href="../../merger.html#merger.merge.clean_metadata">[docs]</a><span class="k">def</span> <span class="nf">clean_metadata</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prepares metadata dictionary for insertion by removing inconsistent entries</span>
+<span class="sd">    and performing escaping of attribute names</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    metadata : dict</span>
+<span class="sd">        dictionary of attribute names and their associated data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="c1"># delete inconsistent items</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">val</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;_FillValue&#39;</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="c1"># escape &#39;/&#39; to &#39;_&#39;</span>
+        <span class="c1"># https://www.unidata.ucar.edu/mailing_lists/archives/netcdfgroup/2012/msg00098.html</span>
+        <span class="k">if</span> <span class="s1">&#39;/&#39;</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+            <span class="n">new_key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+            <span class="n">metadata</span><span class="p">[</span><span class="n">new_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="k">del</span> <span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="init_dataset"><a class="viewcode-back" href="../../merger.html#merger.merge.init_dataset">[docs]</a><span class="k">def</span> <span class="nf">init_dataset</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="n">var_info</span><span class="p">,</span> <span class="n">max_dims</span><span class="p">,</span> <span class="n">input_files</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize the dataset utilizing data gathered from preprocessing</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    merged_dataset : nc.Dataset</span>
+<span class="sd">        the dataset to be initialized</span>
+<span class="sd">    groups : list</span>
+<span class="sd">        list of group names</span>
+<span class="sd">    var_info : dict</span>
+<span class="sd">        dictionary of variable names and VariableInfo objects</span>
+<span class="sd">    max_dims : dict</span>
+<span class="sd">        dictionary of dimension names (including path) and their sizes</span>
+<span class="sd">    input_files : list</span>
+<span class="sd">        list of file paths to be merged</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Create groups</span>
+    <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">group</span> <span class="o">==</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># Skip root</span>
+
+        <span class="n">merged_dataset</span><span class="o">.</span><span class="n">createGroup</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+
+    <span class="c1"># Create dims</span>
+    <span class="n">merged_dataset</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;subset_index&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_files</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">max_dims</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="n">resolve_group</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">dim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dim</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="c1"># Generate filelist</span>
+    <span class="n">subset_files</span> <span class="o">=</span> <span class="n">merged_dataset</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;subset_files&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">str_</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;subset_index&#39;</span><span class="p">])</span>
+    <span class="n">subset_files</span><span class="o">.</span><span class="n">long_name</span> <span class="o">=</span> <span class="s1">&#39;List of subsetted files used to create this merge product.&#39;</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">input_files</span><span class="p">):</span>
+        <span class="n">subset_files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="c1"># Recreate variables</span>
+    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">var_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;subset_index&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">var</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dim_order</span><span class="p">)</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="n">resolve_group</span><span class="p">(</span><span class="n">merged_dataset</span><span class="p">,</span> <span class="n">var</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># Holdover from old merging code - not sure if needed, but kept for legacy</span>
+        <span class="n">chunk_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">resolve_dim</span><span class="p">(</span><span class="n">max_dims</span><span class="p">,</span> <span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">var</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dim_order</span><span class="p">]</span>
+
+        <span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+            <span class="n">varname</span><span class="o">=</span><span class="n">var</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">datatype</span><span class="o">=</span><span class="n">var</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">datatype</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span>
+            <span class="n">chunksizes</span><span class="o">=</span><span class="n">chunk_sizes</span><span class="p">,</span>
+            <span class="n">fill_value</span><span class="o">=</span><span class="n">var</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">fill_value</span><span class="p">,</span>
+            <span class="n">zlib</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
