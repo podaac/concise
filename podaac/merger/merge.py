@@ -24,7 +24,7 @@ def is_file_empty(parent_group):
     return True
 
 
-def merge_netcdf_files(original_input_files, output_file, logger=getLogger(__name__), perf_stats=None, process_count=None):  # pylint: disable=too-many-locals
+def merge_netcdf_files(original_input_files, output_file, granule_urls, logger=getLogger(__name__), perf_stats=None, process_count=None):  # pylint: disable=too-many-locals
     """
     Main entrypoint to merge implementation. Merges n >= 2 granules together as a single
     granule. Named in reference to original Java implementation.
@@ -64,7 +64,7 @@ def merge_netcdf_files(original_input_files, output_file, logger=getLogger(__nam
             if is_empty is False:
                 input_files.append(file)
 
-    preprocess = run_preprocess(input_files, process_count)
+    preprocess = run_preprocess(input_files, process_count, granule_urls)
     group_list = preprocess['group_list']
     max_dims = preprocess['max_dims']
     var_info = preprocess['var_info']

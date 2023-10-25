@@ -37,7 +37,8 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     input_files = list(Path(args.data_dir).resolve().iterdir())
-    merge_netcdf_files(input_files, args.output_path, process_count=args.cores)
+    granule_urls = []
+    merge_netcdf_files(input_files, args.output_path, granule_urls, process_count=args.cores)
 
 
 if __name__ == '__main__':
