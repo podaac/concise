@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Updated jupyter notebook
     - Update notebook test to use python code directly instead of using jupyter notebook
   - Updated python libraries
-
+  - Update history json to have url in history 
 ### Deprecated 
 ### Removed
 ### Fixed

@@ -93,7 +93,7 @@ class ConciseService(BaseHarmonyAdapter):
             self.logger.info('Finished granule downloads')
 
             output_path = Path(temp_dir).joinpath(filename).resolve()
-            merge_netcdf_files(input_files, output_path, logger=self.logger)
+            merge_netcdf_files(input_files, output_path, granule_urls, logger=self.logger)
             staged_url = self._stage(str(output_path), filename, NETCDF4_MIME)
 
         # -- Output to STAC catalog --
