@@ -402,7 +402,7 @@ def attr_eq(attr_1, attr_2):
     if isinstance(attr_1, np.ndarray) or isinstance(attr_2, np.ndarray):
         if not np.array_equal(attr_1, attr_2):
             return False
-    elif type(attr_1) is not type(attr_2) or attr_1 is not attr_2:
+    elif type(attr_1) != type(attr_2) or attr_1 != attr_2:  # pylint: disable=unidiomatic-typecheck    # noqa: E721
         return False
 
     return True
