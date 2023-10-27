@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+### Changed 
+### Deprecated 
+### Removed
+### Fixed
+
+
+## [0.7.0]
+
+### Added
   - PODAAC-5424
     - Update concise test in uat to test only POCLOUD collections
 ### Changed 
@@ -14,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Updated jupyter notebook
     - Update notebook test to use python code directly instead of using jupyter notebook
   - Updated python libraries
-  - Update history json to have url in history 
+  - Update history json to have url in history
 ### Deprecated 
 ### Removed
 ### Fixed
