@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "podaac-concise"
-version = "0.7.0rc3"
+version = "0.7.0rc4"
 description = "Harmony service that merges granules"
 authors = ["podaac-tva <podaac-tva@jpl.nasa.gov>"]
 license = "Apache-2.0"
