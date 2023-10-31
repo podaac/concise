@@ -155,8 +155,9 @@ jobs:
           umm_type: 'umm-s'
           use_associations: 'false'
         env:
-          cmr_user: ${{secrets.CMR_USER}}
-          cmr_pass: ${{secrets.CMR_PASS}}
+          LAUNCHPAD_TOKEN_SIT: ${{secrets.LAUNCHPAD_TOKEN_SIT}}
+          LAUNCHPAD_TOKEN_UAT: ${{secrets.LAUNCHPAD_TOKEN_UAT}}
+          LAUNCHPAD_TOKEN_OPS: ${{secrets.LAUNCHPAD_TOKEN_OPS}}
       - name: Build Docs
         run: |
           poetry run sphinx-build -b html ./docs docs/_build/
