@@ -203,7 +203,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=semver,pattern={{version}},value=${{ env.software_version }}
+            type=raw,pattern={{version}},value=${{ env.software_version }}
             type=raw,value=${{ env.venue }}
       - name: Wait for package
         if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
