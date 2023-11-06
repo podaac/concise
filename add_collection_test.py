@@ -136,11 +136,15 @@ def verify_variables(merged_group, origin_group, subset_index, both_merged):
             merged_data = np.resize(merged_var[subset_index], origin_var.shape)
             origin_data = origin_var
 
+        equal_nan = True
+        if merged_data.dtype.kind == 'S':
+            equal_nan = False
+
         # verify variable data
         if isinstance(origin_data, str):
             unittest.TestCase().assertEqual(merged_data, origin_data)
         else:
-            unittest.TestCase().assertTrue(np.array_equal(merged_data, origin_data, equal_nan=True))
+            unittest.TestCase().assertTrue(np.array_equal(merged_data, origin_data, equal_nan=equal_nan))
 
 
 def verify_groups(merged_group, origin_group, subset_index, file=None, both_merged=False):
@@ -221,6 +225,7 @@ def test(collection_id, venue):
     print('\nDone downloading.')
 
     filename = file_names[0]
+
     # Handle time dimension and variables dropping
     merge_dataset = nc.Dataset(filename, 'r')
 
