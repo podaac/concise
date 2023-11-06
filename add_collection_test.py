@@ -6,6 +6,7 @@ import unittest
 import numpy as np
 import netCDF4 as nc
 import requests
+import json
 from harmony import BBox, Client, Collection, Request, Environment
 import argparse
 from utils import FileHandler
@@ -142,7 +143,10 @@ def verify_variables(merged_group, origin_group, subset_index, both_merged):
             unittest.TestCase().assertTrue(np.array_equal(merged_data, origin_data, equal_nan=True))
 
 
-def verify_groups(merged_group, origin_group, subset_index, both_merged=False):
+def verify_groups(merged_group, origin_group, subset_index, file=None, both_merged=False):
+    if file:
+        print("verifying groups ....." + file)
+
     verify_dims(merged_group, origin_group, both_merged)
     verify_attrs(merged_group, origin_group, both_merged)
     verify_variables(merged_group, origin_group, subset_index, both_merged)
@@ -150,7 +154,7 @@ def verify_groups(merged_group, origin_group, subset_index, both_merged=False):
     for child_group in origin_group.groups:
         merged_subgroup = merged_group[child_group]
         origin_subgroup = origin_group[child_group]
-        verify_groups(merged_subgroup, origin_subgroup, subset_index, both_merged)
+        verify_groups(merged_subgroup, origin_subgroup, subset_index, both_merged=both_merged)
 
 
 # GET TOKEN FROM CMR
@@ -173,7 +177,7 @@ def download_file(url, local_path, headers):
         with open(local_path, 'wb') as file:
             for chunk in response.iter_content(chunk_size=8192):
                 file.write(chunk)
-        print("Original File downloaded successfully.")
+        print("Original File downloaded successfully. " + local_path)
     else:
         print(f"Failed to download the file. Status code: {response.status_code}")
 
@@ -233,34 +237,16 @@ def test(collection_id, venue):
     }
 
     original_files = merge_dataset.variables['subset_files']
+    history_json = json.loads(merge_dataset.history_json)
     assert len(original_files) == max_results
 
-    for file in original_files:
-
-        # if the file name end in an alphabet so we know there is some extension
-        if file[-1].isalpha():
-            file_name = file.rsplit(".", 1)[0]
-        else:
-            file_name = file
-            
-        print(file_name)
-        cmr_query = f"{cmr_base_url}{file_name}&collection_concept_id={collection_id}"
-        print(cmr_query)
-
-        response = requests.get(cmr_query, headers=headers)
-
-        result = response.json()
-        links = result.get('items')[0].get('umm').get('RelatedUrls')
-        for link in links:
-            if link.get('Type') == 'GET DATA':
-                data_url = link.get('URL')
-                parsed_url = urlparse(data_url)
-                local_file_name = os.path.basename(parsed_url.path)
-                download_file(data_url, local_file_name, headers)
+    for url in history_json[0].get("derived_from"):
+        local_file_name = os.path.basename(url)
+        download_file(url, local_file_name, headers)
 
     for i, file in enumerate(original_files):
         origin_dataset = nc.Dataset(file)
-        verify_groups(merge_dataset, origin_dataset, i)
+        verify_groups(merge_dataset, origin_dataset, i, file=file)
 
 
 def run():
