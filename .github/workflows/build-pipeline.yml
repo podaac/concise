@@ -159,6 +159,25 @@ jobs:
           LAUNCHPAD_TOKEN_SIT: ${{secrets.LAUNCHPAD_TOKEN_SIT}}
           LAUNCHPAD_TOKEN_UAT: ${{secrets.LAUNCHPAD_TOKEN_UAT}}
           LAUNCHPAD_TOKEN_OPS: ${{secrets.LAUNCHPAD_TOKEN_OPS}}
+      - name: Publish L2ss Concise Chain UMM-S with new version
+        uses: podaac/cmr-umm-updater@feature/umm_version
+        if: |
+          github.ref == 'refs/heads/main'    ||
+          startsWith(github.ref, 'refs/heads/release')
+        with:
+          umm-json: 'cmr/l2ss_concise_chain_cmr_umm_s.json'
+          provider: 'POCLOUD'
+          env: ${{ env.venue }}
+          version: ${{ env.software_version }}
+          timeout: 60
+          disable_removal: 'true'
+          umm_type: 'umm-s'
+          use_associations: 'false'
+          umm_version: '1.5.2'
+        env:
+          LAUNCHPAD_TOKEN_SIT: ${{secrets.LAUNCHPAD_TOKEN_SIT}}
+          LAUNCHPAD_TOKEN_UAT: ${{secrets.LAUNCHPAD_TOKEN_UAT}}
+          LAUNCHPAD_TOKEN_OPS: ${{secrets.LAUNCHPAD_TOKEN_OPS}}
       - name: Build Docs
         run: |
           poetry run sphinx-build -b html ./docs docs/_build/
