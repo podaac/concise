@@ -20,6 +20,13 @@
             "LongName": "Physical Oceanography Distributed Active Archive Center, Jet Propulsion Laboratory, NASA"
         }
     ],
+    "ServiceOptions": {
+        "Aggregation": {
+            "Concatenate": {
+                "ConcatenateDefault": true
+            }
+        }
+    },
     "AccessConstraints": "None",
     "Description": "Endpoint for concatenating L2 data via Harmony",
     "Version": "#.#.#",
