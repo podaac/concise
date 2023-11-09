@@ -27,6 +27,11 @@
             }
         }
     },
+    "MetadataSpecification": {
+       "URL": "https://cdn.earthdata.nasa.gov/umm/service/v1.5.2",
+       "Name": "UMM-S",
+       "Version": "1.5.2"
+    },    
     "AccessConstraints": "None",
     "Description": "Endpoint for concatenating L2 data via Harmony",
     "Version": "#.#.#",
