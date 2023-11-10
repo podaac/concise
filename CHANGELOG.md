@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
   - PODAAC-5424
     - Update concise test in uat to test only POCLOUD collections
+  - Publishing L2ss Concise Chain umm-s Update
 ### Changed 
   - Issue-68
     - Updated jupyter notebook
