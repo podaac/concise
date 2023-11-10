@@ -1,0 +1,72 @@
+{
+    "URL": {
+        "Description": "This is the harmony root endpoint.",
+        "URLValue": "https://harmony.uat.earthdata.nasa.gov"
+    },
+    "Type": "Harmony",
+    "ServiceKeywords": [
+        {
+            "ServiceCategory": "EARTH SCIENCE SERVICES",
+            "ServiceTopic": "DATA MANAGEMENT/DATA HANDLING",
+            "ServiceTerm": "SUBSETTING/SUPERSETTING",
+            "ServiceSpecificTerm": "SPATIAL SUBSETTING"
+        },
+        {
+            "ServiceCategory": "EARTH SCIENCE SERVICES",
+            "ServiceTopic": "DATA MANAGEMENT/DATA HANDLING",
+            "ServiceTerm": "SUBSETTING/SUPERSETTING",
+            "ServiceSpecificTerm": "TEMPORAL SUBSETTING"
+        },
+        {
+            "ServiceCategory": "EARTH SCIENCE SERVICES",
+            "ServiceTopic": "DATA MANAGEMENT/DATA HANDLING",
+            "ServiceTerm": "SUBSETTING/SUPERSETTING",
+            "ServiceSpecificTerm": "VARIABLE SUBSETTING"
+        },
+        {
+            "ServiceCategory": "EARTH SCIENCE SERVICES",
+            "ServiceTopic": "DATA MANAGEMENT/DATA HANDLING",
+            "ServiceTerm": "TRANSFORMATION/CONVERSION"
+        }
+    ],
+    "ServiceOrganizations": [
+        {
+            "Roles": [
+                "AUTHOR",
+                "DEVELOPER",
+                "SERVICE PROVIDER"
+            ],
+            "ShortName": "NASA/JPL/PODAAC",
+            "LongName": "Physical Oceanography Distributed Active Archive Center, Jet Propulsion Laboratory, NASA"
+        }
+    ],
+    "ServiceOptions": {
+        "Subset": {
+            "SpatialSubset": {
+                "BoundingBox": {
+                    "AllowMultipleValues": false
+                }
+            },
+            "TemporalSubset": {
+                "AllowMultipleValues": false
+            },
+            "VariableSubset": {
+                "AllowMultipleValues": true
+            }
+        },
+        "Aggregation": {
+            "Concatenate": {
+                "ConcatenateDefault": true
+            }
+        }
+    },
+    "MetadataSpecification": {
+        "URL": "https://cdn.earthdata.nasa.gov/umm/service/v1.5.2",
+        "Name": "UMM-S",
+        "Version": "1.5.2"
+    },
+    "Description": "Chain PODAAC L2 subsetter service with PODAAC file concatenation service.",
+    "Version": "#.#.#",
+    "Name": "PODAAC L2SS-py Concise Chain",
+    "LongName": "PODAAC L2 Subsetter to Concatenation Harmony Chain"
+}

@@ -83,11 +83,19 @@ def run():
 
     with open(collection_json) as afile:
         assoc_concept_ids = afile.readlines()
+    exception_happen = False
+    failed_remove = []
     for i, assoc_concept_id in enumerate(assoc_concept_ids):
         collection_concept_id = assoc_concept_id.strip('\n')
         print(f"Removing {collection_concept_id} from CMR association")
         resp = create_assoc.remove_association(url_prefix, service_concept_id, collection_concept_id, header)
         print(f'Response: {resp}')
+        if resp.status_code != 200:
+            exception_happen = True
+            failed_remove.append(assoc_concept_ids)
+    if exception_happen:
+        print(failed_remove)
+        raise Exception("Failure to remove a collection from CMR")
 
 if __name__ == '__main__':
     run()

@@ -1,7 +1,6 @@
 """Preprocessing methods and the utilities to automagically run them in single-thread/multiprocess modes"""
 
 import json
-import os
 import queue
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -15,7 +14,7 @@ from podaac.merger.path_utils import get_group_path
 from podaac.merger.variable_info import VariableInfo
 
 
-def run_preprocess(file_list, process_count):
+def run_preprocess(file_list, process_count, granule_urls):
     """
     Automagically run preprocessing in an optimized mode determined by the environment
 
@@ -28,9 +27,9 @@ def run_preprocess(file_list, process_count):
     """
 
     if process_count == 1:
-        return _run_single_core(file_list)
+        return _run_single_core(file_list, granule_urls)
 
-    return _run_multi_core(file_list, process_count)
+    return _run_multi_core(file_list, process_count, granule_urls)
 
 
 def merge_max_dims(merged_max_dims, subset_max_dims):
@@ -76,7 +75,7 @@ def merge_metadata(merged_metadata, subset_metadata):
                 merged_attrs[attr_name] = False  # mark as inconsistent
 
 
-def construct_history(input_files):
+def construct_history(input_files, granule_urls):
     """
     Construct history JSON entry for this concatenation operation
     https://wiki.earthdata.nasa.gov/display/TRT/In-File+Provenance+Metadata+-+TRT-42
@@ -91,10 +90,10 @@ def construct_history(input_files):
     dict
         History JSON constructed for this concat operation
     """
-    base_names = list(map(os.path.basename, input_files))
+
     history_json = {
         "date_time": datetime.now(tz=timezone.utc).isoformat(),
-        "derived_from": base_names,
+        "derived_from": granule_urls,
         "program": 'concise',
         "version": importlib_metadata.distribution('podaac-concise').version,
         "parameters": f'input_files={input_files}',
@@ -124,7 +123,7 @@ def retrieve_history(dataset):
     return json.loads(history_json)
 
 
-def _run_single_core(file_list):
+def _run_single_core(file_list, granule_urls):
     """
     Run the granule preprocessing in the current thread/single-core mode
 
@@ -153,7 +152,7 @@ def _run_single_core(file_list):
 
     group_list.sort()  # Ensure insertion order doesn't matter between granules
 
-    history_json.append(construct_history(file_list))
+    history_json.append(construct_history(file_list, granule_urls))
     group_metadata[group_list[0]]['history_json'] = json.dumps(
         history_json,
         default=str
@@ -168,7 +167,7 @@ def _run_single_core(file_list):
     }
 
 
-def _run_multi_core(file_list, process_count):
+def _run_multi_core(file_list, process_count, granule_urls):
     """
     Run the granule preprocessing in multi-core mode. This method spins up
     the number of processes defined by process_count which process granules
@@ -248,7 +247,7 @@ def _run_multi_core(file_list, process_count):
         # Merge history_json entries from input files
         history_json.extend(result['history_json'])
 
-    history_json.append(construct_history(file_list))
+    history_json.append(construct_history(file_list, granule_urls))
     group_metadata[group_list[0]]['history_json'] = json.dumps(
         history_json,
         default=str
@@ -403,7 +402,7 @@ def attr_eq(attr_1, attr_2):
     if isinstance(attr_1, np.ndarray) or isinstance(attr_2, np.ndarray):
         if not np.array_equal(attr_1, attr_2):
             return False
-    elif type(attr_1) != type(attr_2) or attr_1 != attr_2:  # pylint: disable=unidiomatic-typecheck
+    elif type(attr_1) != type(attr_2) or attr_1 != attr_2:  # pylint: disable=unidiomatic-typecheck    # noqa: E721
         return False
 
     return True

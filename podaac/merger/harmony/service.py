@@ -93,15 +93,15 @@ class ConciseService(BaseHarmonyAdapter):
             self.logger.info('Finished granule downloads')
 
             output_path = Path(temp_dir).joinpath(filename).resolve()
-            merge_netcdf_files(input_files, output_path, logger=self.logger)
+            merge_netcdf_files(input_files, output_path, granule_urls, logger=self.logger)
             staged_url = self._stage(str(output_path), filename, NETCDF4_MIME)
 
         # -- Output to STAC catalog --
         result.clear_items()
-        properties = dict(
-            start_datetime=datetimes[0].isoformat(),
-            end_datetime=datetimes[1].isoformat()
-        )
+        properties = {
+            "start_datetime": datetimes[0].isoformat(),
+            "end_datetime": datetimes[1].isoformat()
+        }
 
         item = Item(str(uuid4()), bbox_to_geometry(bbox), bbox, None, properties)
         asset = Asset(staged_url, title=filename, media_type=NETCDF4_MIME, roles=['data'])

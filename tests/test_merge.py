@@ -130,8 +130,9 @@ class TestMerge(TestCase):
         output_path = self.__output_path.joinpath(output_name)
         data_path = self.__test_data_path.joinpath(data_dir)
         input_files = list(data_path.iterdir())
+        granule_urls = []
 
-        merge.merge_netcdf_files(input_files, output_path, process_count=process_count)
+        merge.merge_netcdf_files(input_files, output_path, granule_urls, process_count=process_count)
 
         merged_dataset = nc.Dataset(output_path)
         file_map = self.verify_files(merged_dataset, input_files, data_dir)
@@ -146,8 +147,9 @@ class TestMerge(TestCase):
 
         java_path = self.__test_data_path.joinpath('java_results', 'merged-ASCATA-L2-25km-Lat-90.0_90.0-Lon-180.0_180.0.subset.nc')
         python_path = self.__output_path.joinpath(output_name)
+        granule_urls = []
 
-        merge.merge_netcdf_files(input_files, python_path, process_count=process_count)
+        merge.merge_netcdf_files(input_files, python_path, granule_urls, process_count=process_count)
 
         java_dataset = nc.Dataset(java_path)
         python_dataset = nc.Dataset(python_path)
@@ -207,7 +209,7 @@ class TestMerge(TestCase):
             history_json = json.loads(merged_dataset.getncattr('history_json'))[-1]
             assert 'date_time' in history_json
             assert history_json.get('program') == 'concise'
-            assert history_json.get('derived_from') == input_files
+            assert history_json.get('derived_from') == [] # list of granule urls
             assert history_json.get('version') == importlib_metadata.distribution('podaac-concise').version
             assert 'input_files=' in history_json.get('parameters')
             assert history_json.get('program_ref') == 'https://cmr.earthdata.nasa.gov:443/search/concepts/S2153799015-POCLOUD'
@@ -217,6 +219,7 @@ class TestMerge(TestCase):
         merge.merge_netcdf_files(
             original_input_files=input_files,
             output_file=self.__output_path.joinpath(output_name_single),
+            granule_urls=[],
             process_count=1
         )
         merged_dataset = nc.Dataset(self.__output_path.joinpath(output_name_single))
@@ -228,6 +231,7 @@ class TestMerge(TestCase):
         merge.merge_netcdf_files(
             original_input_files=input_files,
             output_file=self.__output_path.joinpath(output_name_multi),
+            granule_urls=[],
             process_count=2
         )
         merged_dataset = nc.Dataset(self.__output_path.joinpath(output_name_multi))
@@ -243,6 +247,7 @@ class TestMerge(TestCase):
         merge.merge_netcdf_files(
             original_input_files=input_files,
             output_file=self.__output_path.joinpath(output_name_single),
+            granule_urls=[],
             process_count=1
         )
         merged_dataset = nc.Dataset(self.__output_path.joinpath(output_name_single))
@@ -274,14 +279,15 @@ class TestMerge(TestCase):
         }
 
         # Test single process merge
-        merge.merge_netcdf_files(input_files, output_path_single, process_count=1)
+        granule_urls = []
+        merge.merge_netcdf_files(input_files, output_path_single, granule_urls, process_count=1)
         dataset = nc.Dataset(output_path_single)
         actual_vars = set(dataset.variables.keys())
         actual_vars.remove('subset_files')
         assert actual_vars == expected_vars
 
         # Test multi-process merge
-        merge.merge_netcdf_files(input_files, output_path_multi, process_count=2)
+        merge.merge_netcdf_files(input_files, output_path_multi, granule_urls, process_count=2)
         dataset = nc.Dataset(output_path_multi)
         actual_vars = set(dataset.variables.keys())
         actual_vars.remove('subset_files')
