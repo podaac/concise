@@ -44,8 +44,8 @@ def multi_core_download(urls, destination_dir, access_token, cfg, process_count=
         url_queue = manager.Queue(len(urls))
         path_list = manager.list()
 
-        for url in urls:
-            url_queue.put(url)
+        for iurl, url in enumerate(urls):
+            url_queue.put((iurl, url))
 
         # Spawn worker processes
         processes = []
@@ -64,7 +64,7 @@ def multi_core_download(urls, destination_dir, access_token, cfg, process_count=
 
         path_list = deepcopy(path_list)  # ensure GC can cleanup multiprocessing
 
-    return [Path(path) for path in path_list]
+    return [Path(path) for ipath, path in sorted(path_list)]
 
 
 def _download_worker(url_queue, path_list, destination_dir, access_token, cfg):
@@ -91,7 +91,7 @@ def _download_worker(url_queue, path_list, destination_dir, access_token, cfg):
 
     while not url_queue.empty():
         try:
-            url = url_queue.get_nowait()
+            iurl, url = url_queue.get_nowait()
         except queue.Empty:
             break
 
@@ -105,4 +105,4 @@ def _download_worker(url_queue, path_list, destination_dir, access_token, cfg):
         else:
             logger.warning('Origin filename could not be assertained - %s', url)
 
-        path_list.append(str(path))
+        path_list.append((iurl, str(path)))
