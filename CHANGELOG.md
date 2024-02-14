@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 ### Changed 
+  - [issues/96](https://github.com/podaac/concise/issues/96):
+    - impelemented sorting after [multi_core_download](https://github.com/podaac/concise/blob/23b44803f4829c1eb7e9d39b311a0373092daab3/podaac/merger/harmony/download_worker.py#L15) to preserve the input file order in the 
 ### Deprecated 
 ### Removed
 ### Fixed
