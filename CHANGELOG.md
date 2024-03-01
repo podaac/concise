@@ -8,7 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 ### Changed 
-### Deprecated 
+### Deprecated
+### Removed
+### Fixed
+
+
+## [0.8.0]
+
+### Added
+### Changed 
+  - [issues/96](https://github.com/podaac/concise/issues/96):
+    - Preserve the order of the input files so the output file matches order
+### Deprecated
 ### Removed
 ### Fixed
 
@@ -24,7 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Updated jupyter notebook
     - Update notebook test to use python code directly instead of using jupyter notebook
   - Updated python libraries
-  - Update history json to have url in history
+  - Update history json to have url in history 
+  - Update add collection test to use url in json history
 ### Deprecated 
 ### Removed
 ### Fixed

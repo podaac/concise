@@ -77,14 +77,6 @@ If any performance improvements are being made, include graphs and charts.
 - `feature/issue-#`
     - Work for enhancements and new features should be done in a branch with this naming convention
     - The issue number should match the associated Github issue number
-- `bugfix/issue-#`
-    - Work for bug fixes should be done in a branch with this naming convention
-    - The issue number should match the associated Github issue number
-- `hotfix/issue-#` or `hotfix/short-fix-description`
-    - Rare/special case to address a special anomaly.
-    - The issue number should match the associated Github issue number, 
-    unless no such issue exists. If not, use a short description of the 
-    issue e.g. `hotfix/fix-request-url`
 
 ### Changelog
 
