@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-### Changed 
+### Changed
+  - Updated python libraries
 ### Deprecated
 ### Removed
+  - Removed CMR testing.  Now done in [concise-autotest](https://github.com/podaac/concise-autotest) repo
+    - Moved add_collection_test.py test to verify_collection.py (in concise-autotest repo)
 ### Fixed
 
 
