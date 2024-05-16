@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 ### Changed
   - Updated python libraries
+  - [issue #114](https://github.com/podaac/concise/issues/114): add type annotations
 ### Deprecated
 ### Removed
   - Removed CMR testing.  Now done in [concise-autotest](https://github.com/podaac/concise-autotest) repo
