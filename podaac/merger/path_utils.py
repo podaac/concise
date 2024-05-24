@@ -2,9 +2,10 @@
 Utilities used throughout the merging implementation to simplify group path resolution
 and generation
 """
+import netCDF4 as nc
 
 
-def get_group_path(group, resource):
+def get_group_path(group: nc.Group, resource: str) -> str:
     """
     Generates a Unix-like path from a group and resource to be accessed
 
@@ -27,7 +28,7 @@ def get_group_path(group, resource):
     return group.path + '/' + resource
 
 
-def resolve_group(dataset, path):
+def resolve_group(dataset: nc.Dataset, path: str):
     """
     Resolves a group path into two components: the group and the resource's name
 
@@ -50,10 +51,10 @@ def resolve_group(dataset, path):
     if len(components[0]) > 0:
         group = dataset[components[0]]
 
-    return (group, components[1])
+    return group, components[1]
 
 
-def resolve_dim(dims, group_path, dim_name):
+def resolve_dim(dims: dict, group_path: str, dim_name: str):
     """
     Attempt to resolve dim name starting from top-most group going down to the root group
 

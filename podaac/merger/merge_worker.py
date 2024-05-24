@@ -1,19 +1,20 @@
 """Preprocessing methods and the utilities to automagically run them in single-thread/multiprocess modes"""
-
+import logging
 import math
-import multiprocessing
-from multiprocessing.shared_memory import SharedMemory
 import queue
 import time
 import os
 import shutil
+import multiprocessing
+from multiprocessing.shared_memory import SharedMemory
+from pathlib import Path
 import netCDF4 as nc
 import numpy as np
 
 from podaac.merger.path_utils import resolve_dim, resolve_group
 
 
-def shared_memory_size():
+def shared_memory_size() -> int:
     """
     try to get the shared memory space size by reading the /dev/shm on linux machines
     """
@@ -26,9 +27,8 @@ def shared_memory_size():
         return int(default_memory_size)
 
 
-def max_var_memory(file_list, var_info, max_dims):
-    """
-    function to get the maximum shared memory that will be used for variables
+def max_var_memory(file_list: list[Path], var_info: dict, max_dims) -> int:
+    """Function to get the maximum shared memory that will be used for variables
 
     Parameters
     ----------
@@ -36,6 +36,7 @@ def max_var_memory(file_list, var_info, max_dims):
         List of file paths to be processed
     var_info : dict
         Dictionary of variable paths and associated VariableInfo
+    max_dims
     """
 
     max_var_mem = 0
@@ -57,7 +58,12 @@ def max_var_memory(file_list, var_info, max_dims):
     return max_var_mem
 
 
-def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logger):
+def run_merge(merged_dataset: nc.Dataset,
+              file_list: list[Path],
+              var_info: dict,
+              max_dims: dict,
+              process_count: int,
+              logger: logging.Logger):
     """
     Automagically run merging in an optimized mode determined by the environment
 
@@ -73,6 +79,7 @@ def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logg
         Dictionary of dimension paths and maximum dimensions found during preprocessing
     process_count : int
         Number of worker processes to run (expected >= 1)
+    logger
     """
 
     if process_count == 1:
@@ -91,7 +98,11 @@ def run_merge(merged_dataset, file_list, var_info, max_dims, process_count, logg
             _run_single_core(merged_dataset, file_list, var_info, max_dims, logger)
 
 
-def _run_single_core(merged_dataset, file_list, var_info, max_dims, logger):
+def _run_single_core(merged_dataset: nc.Dataset,
+                     file_list: list[Path],
+                     var_info: dict,
+                     max_dims: dict,
+                     logger: logging.Logger):
     """
     Run the variable merge in the current thread/single-core mode
 
@@ -105,6 +116,7 @@ def _run_single_core(merged_dataset, file_list, var_info, max_dims, logger):
         Dictionary of variable paths and associated VariableInfo
     max_dims : dict
         Dictionary of dimension paths and maximum dimensions found during preprocessing
+    logger
     """
 
     logger.info("Running single core ......")
@@ -129,7 +141,12 @@ def _run_single_core(merged_dataset, file_list, var_info, max_dims, logger):
                 merged_var[i] = resized
 
 
-def _run_multi_core(merged_dataset, file_list, var_info, max_dims, process_count, logger):  # pylint: disable=too-many-locals
+def _run_multi_core(merged_dataset: nc.Dataset,  # pylint: disable=too-many-locals
+                    file_list: list[Path],
+                    var_info: dict,
+                    max_dims: dict,
+                    process_count: int,
+                    logger: logging.Logger):
     """
     Run the variable merge in multi-core mode. This method creates (process_count - 1)
     read processes which read data from an origin granule, resize it, then queue it
@@ -150,6 +167,7 @@ def _run_multi_core(merged_dataset, file_list, var_info, max_dims, process_count
         Dictionary of dimension paths and maximum dimensions found during preprocessing
     process_count : int
         Number of worker processes to run (expected >= 2)
+    logger
     """
 
     logger.info("Running multicore ......")
@@ -266,7 +284,7 @@ def _run_worker(in_queue, out_queue, max_dims, var_info, memory_limit, lock):
                 shared_mem.close()
 
 
-def _check_exit(processes):
+def _check_exit(processes: list):
     """
     Ensure that all processes have exited without error by checking their exitcode
     if they're no longer running. Processes that have exited properly are removed
@@ -286,7 +304,7 @@ def _check_exit(processes):
                 raise RuntimeError(f'Merging failed - exit code: {process.exitcode}')
 
 
-def resize_var(var, var_info, max_dims):
+def resize_var(var: nc.Variable, var_info, max_dims: dict) -> np.ndarray:
     """
     Resizes a variable's data to the maximum dimensions found in preprocessing.
     This method will never downscale a variable and only performs bottom and
@@ -296,8 +314,8 @@ def resize_var(var, var_info, max_dims):
     ----------
     var : nc.Variable
         variable to be resized
-    group_path : str
-        group path to this variable
+    var_info
+        contains a group path to this variable
     max_dims : dict
         dictionary of maximum dimensions found during preprocessing
 
@@ -310,7 +328,7 @@ def resize_var(var, var_info, max_dims):
     if var.ndim == 0:
         return var[:]
 
-    # generate ordered array of new widths
+    # generate an ordered array of new widths
     dims = [resolve_dim(max_dims, var_info.group_path, dim.name) - dim.size for dim in var.get_dims()]
     widths = [[0, dim] for dim in dims]
 

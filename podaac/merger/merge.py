@@ -1,5 +1,5 @@
 """Main module containing merge implementation"""
-
+from pathlib import Path
 from time import perf_counter
 from logging import getLogger
 from os import cpu_count
@@ -11,9 +11,9 @@ from podaac.merger.path_utils import get_group_path, resolve_dim, resolve_group
 from podaac.merger.preprocess_worker import run_preprocess
 
 
-def is_file_empty(parent_group):
+def is_file_empty(parent_group: nc.Dataset | nc.Group) -> bool:
     """
-    Function to test if a all variable size in a dataset is 0
+    Function to test if any variable size in a dataset is zero
     """
 
     for var in parent_group.variables.values():
@@ -24,17 +24,23 @@ def is_file_empty(parent_group):
     return True
 
 
-def merge_netcdf_files(original_input_files, output_file, granule_urls, logger=getLogger(__name__), perf_stats=None, process_count=None):  # pylint: disable=too-many-locals
+def merge_netcdf_files(original_input_files: list[Path],  # pylint: disable=too-many-locals
+                       output_file: str,
+                       granule_urls,
+                       logger=getLogger(__name__),
+                       perf_stats: dict = None,
+                       process_count: int = None):
     """
     Main entrypoint to merge implementation. Merges n >= 2 granules together as a single
-    granule. Named in reference to original Java implementation.
+    granule. Named in reference to the original Java implementation.
 
     Parameters
     ----------
-    input_files: list
-        list of string paths to NetCDF4 files to merge
+    original_input_files: list
+        list of Paths to NetCDF4 files to merge
     output_file: str
         output path for merged product
+    granule_urls
     logger: logger
         logger object
     perf_stats: dict
@@ -113,7 +119,7 @@ def merge_netcdf_files(original_input_files, output_file, granule_urls, logger=g
     logger.info('Done!')
 
 
-def clean_metadata(metadata):
+def clean_metadata(metadata: dict) -> None:
     """
     Prepares metadata dictionary for insertion by removing inconsistent entries
     and performing escaping of attribute names
@@ -141,9 +147,13 @@ def clean_metadata(metadata):
             del metadata[key]
 
 
-def init_dataset(merged_dataset, groups, var_info, max_dims, input_files):
+def init_dataset(merged_dataset: nc.Dataset,
+                 groups: list[str],
+                 var_info: dict,
+                 max_dims: dict,
+                 input_files: list[Path]) -> None:
     """
-    Initialize the dataset utilizing data gathered from preprocessing
+    Initialize the dataset using data gathered from preprocessing
 
     Parameters
     ----------
