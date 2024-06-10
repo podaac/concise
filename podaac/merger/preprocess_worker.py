@@ -1,10 +1,10 @@
 """Preprocessing methods and the utilities to automagically run them in single-thread/multiprocess modes"""
-
+from pathlib import Path
 import json
 import queue
 from copy import deepcopy
 from datetime import datetime, timezone
-from multiprocessing import Manager, Process
+from multiprocessing import Manager, Process, Queue
 
 import importlib_metadata
 import netCDF4 as nc
@@ -14,7 +14,7 @@ from podaac.merger.path_utils import get_group_path
 from podaac.merger.variable_info import VariableInfo
 
 
-def run_preprocess(file_list, process_count, granule_urls):
+def run_preprocess(file_list: list[Path], process_count: int, granule_urls: str) -> dict:
     """
     Automagically run preprocessing in an optimized mode determined by the environment
 
@@ -24,6 +24,7 @@ def run_preprocess(file_list, process_count, granule_urls):
         List of file paths to be processed
     process_count : int
         Number of worker processes to run (expected >= 1)
+    granule_urls
     """
 
     if process_count == 1:
@@ -50,7 +51,7 @@ def merge_max_dims(merged_max_dims, subset_max_dims):
             merged_max_dims[dim_name] = subset_dim_size
 
 
-def merge_metadata(merged_metadata, subset_metadata):
+def merge_metadata(merged_metadata: dict, subset_metadata: dict) -> None:
     """
     Perform aggregation of metadata. Intended for use in multithreaded
     mode only
@@ -75,7 +76,7 @@ def merge_metadata(merged_metadata, subset_metadata):
                 merged_attrs[attr_name] = False  # mark as inconsistent
 
 
-def construct_history(input_files, granule_urls):
+def construct_history(input_files: list[Path], granule_urls: str) -> dict:
     """
     Construct history JSON entry for this concatenation operation
     https://wiki.earthdata.nasa.gov/display/TRT/In-File+Provenance+Metadata+-+TRT-42
@@ -84,6 +85,7 @@ def construct_history(input_files, granule_urls):
     ----------
     input_files : list
         List of input files
+    granule_urls : str
 
     Returns
     -------
@@ -123,7 +125,7 @@ def retrieve_history(dataset):
     return json.loads(history_json)
 
 
-def _run_single_core(file_list, granule_urls):
+def _run_single_core(file_list: list[Path], granule_urls: str) -> dict:
     """
     Run the granule preprocessing in the current thread/single-core mode
 
@@ -131,6 +133,7 @@ def _run_single_core(file_list, granule_urls):
     ----------
     file_list : list
         List of file paths to be processed
+    granule_urls
 
     Returns
     -------
@@ -167,7 +170,9 @@ def _run_single_core(file_list, granule_urls):
     }
 
 
-def _run_multi_core(file_list, process_count, granule_urls):
+def _run_multi_core(file_list: list[Path],
+                    process_count: int,
+                    granule_urls: str) -> dict:
     """
     Run the granule preprocessing in multi-core mode. This method spins up
     the number of processes defined by process_count which process granules
@@ -181,6 +186,7 @@ def _run_multi_core(file_list, process_count, granule_urls):
         List of file paths to be processed
     process_count : int
         Number of worker processes to run (expected >= 2)
+    granule_urls
 
     Returns
     -------
@@ -262,11 +268,11 @@ def _run_multi_core(file_list, process_count, granule_urls):
     }
 
 
-def _run_worker(in_queue, results):
+def _run_worker(in_queue: Queue, results: list[dict]) -> None:
     """
     A method to be executed in a separate process which runs preprocessing on granules
     from the input queue and stores the results internally. When the queue is empty
-    (processing is complete), the local results are transfered to the external results
+    (processing is complete), the local results are transferred to the external results
     array to be merged by the main process. If the process never processed any granules
     which is possible if the input queue is underfilled, the process just exits without
     appending to the array
@@ -311,7 +317,12 @@ def _run_worker(in_queue, results):
         })
 
 
-def process_groups(parent_group, group_list, max_dims, group_metadata, var_metadata, var_info):
+def process_groups(parent_group: nc.Dataset | nc.Group,
+                   group_list: list,
+                   max_dims: dict,
+                   group_metadata: dict,
+                   var_metadata: dict,
+                   var_info: dict):
     """
     Perform preprocessing of a group and recursively process each child group
 
@@ -345,7 +356,7 @@ def process_groups(parent_group, group_list, max_dims, group_metadata, var_metad
         process_groups(child_group, group_list, max_dims, group_metadata, var_metadata, var_info)
 
 
-def get_max_dims(group, max_dims):
+def get_max_dims(group: nc.Dataset | nc.Group, max_dims: dict) -> None:
     """
     Aggregates dimensions from each group and creates a dictionary
     of the largest dimension sizes for each group
@@ -365,7 +376,7 @@ def get_max_dims(group, max_dims):
             max_dims[dim_path] = dim.size
 
 
-def get_metadata(group, metadata):
+def get_metadata(group: nc.Dataset | nc.Group | nc.Variable, metadata: dict) -> None:
     """
     Aggregates metadata from various NetCDF4 objects into a dictionary
 
@@ -386,7 +397,7 @@ def get_metadata(group, metadata):
             metadata[attr_name] = False  # mark as inconsistent
 
 
-def attr_eq(attr_1, attr_2):
+def attr_eq(attr_1, attr_2) -> bool:
     """
     Helper function to check if one attribute value is equal to another
     (no, a simple == was not working)
@@ -408,7 +419,7 @@ def attr_eq(attr_1, attr_2):
     return True
 
 
-def get_variable_data(group, var_info, var_metadata):
+def get_variable_data(group: nc.Dataset | nc.Group, var_info: dict, var_metadata: dict) -> None:
     """
     Aggregate variable metadata and attributes. Primarily utilized in process_groups
 
