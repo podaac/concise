@@ -32,7 +32,7 @@ class ConciseService(BaseHarmonyAdapter):
         Primary entrypoint into the service wrapper. Overrides BaseHarmonyAdapter.invoke
         """
         if not self.catalog:
-            # Message-only support is being depreciated in Harmony so we should expect to
+            # Message-only support is being depreciated in Harmony, so we should expect to
             # only see requests with catalogs when invoked with a newer Harmony instance
             # https://github.com/nasa/harmony-service-lib-py/blob/21bcfbda17caf626fb14d2ac4f8673be9726b549/harmony/adapter.py#L71
             raise RuntimeError('Invoking CONCISE without a STAC catalog is not supported')
@@ -42,7 +42,7 @@ class ConciseService(BaseHarmonyAdapter):
     def process_catalog(self, catalog: Catalog):
         """
         Recursively process a catalog and all its children. Adapted from
-        BaseHarmonyAdapter._process_catalog_recursive to specfifically
+        BaseHarmonyAdapter._process_catalog_recursive to specifically
         support our particular use case for many-to-one
 
         Parameters
