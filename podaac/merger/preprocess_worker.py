@@ -255,8 +255,6 @@ def _run_multi_core(file_list: list[Path],
         default=str
     )
 
-    print(var_info)
-
     return {
         'group_list': group_list,
         'max_dims': max_dims,
