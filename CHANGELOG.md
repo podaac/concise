@@ -8,10 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 ### Changed
-### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+  - Variable Merging
+    - Fixed way we merge variables when granules in a collection have varying variables.
 
 
 ## [0.9.0]
