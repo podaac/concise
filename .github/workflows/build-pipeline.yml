@@ -243,6 +243,19 @@ jobs:
           pull: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          
+      - name: Deploy Harmony
+        env:
+            ENV: ${{ env.venue }}
+            CMR_USER: ${{ secrets.CMR_USER }}
+            CMR_PASS: ${{ secrets.CMR_PASS }}
+        if: |
+          github.ref == 'refs/heads/main'    ||
+          startsWith(github.ref, 'refs/heads/release')
+        working-directory: deployment
+        run: 
+          poetry run python harmony_deploy.py --tag ${{ env.software_version }} 
+
 # As of 2023/01/23 these steps below for scanning the Docker image with Snyk are failing. I've tried both the official Snyk
 # action https://github.com/snyk/actions/tree/master/docker and this method below of manually calling the CLI.
 # The error when using the official Snyk action is
