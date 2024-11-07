@@ -313,6 +313,7 @@ def _run_worker(in_queue: Queue, results: list[dict]) -> None:
         })
 
 
+# pylint: disable=,too-many-positional-arguments
 def process_groups(parent_group: nc.Dataset | nc.Group,
                    group_list: list,
                    max_dims: dict,

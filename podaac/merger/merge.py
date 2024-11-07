@@ -24,7 +24,7 @@ def is_file_empty(parent_group: nc.Dataset | nc.Group) -> bool:
     return True
 
 
-def merge_netcdf_files(original_input_files: list[Path],  # pylint: disable=too-many-locals
+def merge_netcdf_files(original_input_files: list[Path],  # pylint: disable=too-many-locals,too-many-positional-arguments
                        output_file: str,
                        granule_urls,
                        logger=getLogger(__name__),
