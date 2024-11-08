@@ -66,9 +66,6 @@ class ConciseService(BaseHarmonyAdapter):
         if len(items) == 0:
             return result
 
-        # # --- Get granule filepaths (urls) ---
-        netcdf_urls: list[str] = _get_netcdf_urls(items)
-
         # -- Process metadata --
         bbox = []
         granule_urls = []
@@ -91,8 +88,7 @@ class ConciseService(BaseHarmonyAdapter):
         first_granule_url = []
         get_granule_url(items[0], first_granule_url)
         first_url_name = Path(first_granule_url[0]).stem
-        f'{first_url_name}_{datetimes[1].isoformat()}_{collection}_merged.nc4'
-        filename = f'{collection}_{datetimes[0].isoformat()}-{datetimes[1].isoformat()}_merged.nc4'
+        filename = f'{first_url_name}_{datetimes[1].isoformat()}_{collection}_merged.nc4'
 
         with TemporaryDirectory() as temp_dir:
             self.logger.info('Starting granule downloads')
