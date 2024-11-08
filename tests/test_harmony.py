@@ -81,8 +81,8 @@ class TestMerge(TestCase):
             collection_name = in_message['sources'][0]['collection']
 
             # Sanity checks on metadata
-            self.assertTrue(unquote(data['href'], encoding='utf-8', errors='replace').endswith(f"{properties['end_datetime']}_{collection_name}_merged.nc4"))
-            self.assertTrue(unquote(data['title'], encoding='utf-8', errors='replace').endswith(f"{properties['end_datetime']}_{collection_name}_merged.nc4"))
+            self.assertTrue(data['href'].endswith(f"{properties['end_datetime']}_{collection_name}_merged.nc4"))
+            self.assertTrue(data['title'].endswith(f"{properties['end_datetime']}_{collection_name}_merged.nc4"))
             self.assertEqual(data['type'], 'application/x-netcdf4')
             self.assertEqual(data['roles'], ['data'])
 
@@ -96,7 +96,7 @@ class TestMerge(TestCase):
             ]
 
             path = urlsplit(data['href']).path
-            dataset = Dataset(unquote(path, encoding='utf-8', errors='replace'))
+            dataset = Dataset(path)
             subset_files = dataset['subset_files'][:].tolist()
             subset_files.sort()
 
