@@ -81,8 +81,12 @@ class TestMerge(TestCase):
             collection_name = in_message['sources'][0]['collection']
 
             # Sanity checks on metadata
-            self.assertTrue(data['href'].endswith(f"{datetime.fromisoformat(properties['end_datetime']).strftime("%Y%m%dT%H%M%SZ")}_{collection_name}_merged.nc4"))
-            self.assertTrue(data['title'].endswith(f"{datetime.fromisoformat(properties['end_datetime']).strftime("%Y%m%dT%H%M%SZ")}_{collection_name}_merged.nc4"))
+            self.assertTrue(data['href'].endswith(
+                f"{datetime.fromisoformat(properties['end_datetime']).strftime('%Y%m%dT%H%M%SZ')}_{collection_name}_merged.nc4"
+            ))
+            self.assertTrue(data['title'].endswith(
+                f"{datetime.fromisoformat(properties['end_datetime']).strftime('%Y%m%dT%H%M%SZ')}_{collection_name}_merged.nc4"
+            ))
             self.assertEqual(data['type'], 'application/x-netcdf4')
             self.assertEqual(data['roles'], ['data'])
 
