@@ -81,13 +81,6 @@ class TestMerge(TestCase):
             collection_name = in_message['sources'][0]['collection']
 
             # Sanity checks on metadata
-            print(f"item_path === {item_path}")
-            print(f"properties['end_datetime'] === {properties['end_datetime']}")
-            print(f"href === {data['href']}")
-            print(f"title === {data['href']}")
-            print(f"item_href === {item_href}")
-            print(f"properties === {properties}")
-            print(f"unquoted href === {unquote(data['href'], encoding='utf-8', errors='replace')}")
             self.assertTrue(unquote(data['href'], encoding='utf-8', errors='replace').endswith(f"{properties['end_datetime']}_{collection_name}_merged.nc4"))
             self.assertTrue(unquote(data['title'], encoding='utf-8', errors='replace').endswith(f"{properties['end_datetime']}_{collection_name}_merged.nc4"))
             self.assertEqual(data['type'], 'application/x-netcdf4')
