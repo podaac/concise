@@ -6,7 +6,7 @@ from unittest import TestCase
 from unittest.mock import patch
 from os import environ
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, unquote
 
 from netCDF4 import Dataset
 import pytest
@@ -85,8 +85,8 @@ class TestMerge(TestCase):
             print(f"properties['end_datetime'] === f{properties['end_datetime']}")
             print(f"href === f{data['href']}")
             print(f"title === f{data['href']}")
-            self.assertTrue(data['href'].endswith(f"{properties['end_datetime']}_{collection_name}_merged.nc4"))
-            self.assertEqual(data['title'], f"{properties['end_datetime']}_{collection_name}_merged.nc4")
+            self.assertTrue(unquote(data['href'], encoding='utf-8', errors='replace').endswith(f"{properties['end_datetime']}_{collection_name}_merged.nc4"))
+            self.assertEqual(unquote(data['title'], encoding='utf-8', errors='replace'), f"{properties['end_datetime']}_{collection_name}_merged.nc4")
             self.assertEqual(data['type'], 'application/x-netcdf4')
             self.assertEqual(data['roles'], ['data'])
 
