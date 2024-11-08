@@ -87,6 +87,7 @@ class TestMerge(TestCase):
             print(f"title === {data['href']}")
             print(f"item_href === {item_href}")
             print(f"properties === {properties}")
+            print(f"unquoted href === {unquote(data['href'], encoding='utf-8', errors='replace')}")
             self.assertTrue(unquote(data['href'], encoding='utf-8', errors='replace').endswith(f"{properties['end_datetime']}_{collection_name}_merged.nc4"))
             self.assertTrue(unquote(data['title'], encoding='utf-8', errors='replace').endswith(f"{properties['end_datetime']}_{collection_name}_merged.nc4"))
             self.assertEqual(data['type'], 'application/x-netcdf4')
@@ -102,7 +103,7 @@ class TestMerge(TestCase):
             ]
 
             path = urlsplit(data['href']).path
-            dataset = Dataset(path)
+            dataset = Dataset(unquote(path, encoding='utf-8', errors='replace'))
             subset_files = dataset['subset_files'][:].tolist()
             subset_files.sort()
 
