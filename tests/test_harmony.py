@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from shutil import rmtree
 import sys
@@ -75,14 +76,17 @@ class TestMerge(TestCase):
             self.assertEqual(item['bbox'], [-4, -3, 4, 3])
             self.assertEqual(properties['start_datetime'], '2020-01-01T00:00:00+00:00')
             self.assertEqual(properties['end_datetime'], '2020-01-05T23:59:59+00:00')
-
             # -- Asset Verification --
             data = item['assets']['data']
             collection_name = in_message['sources'][0]['collection']
 
             # Sanity checks on metadata
-            self.assertTrue(data['href'].endswith(f'/{collection_name}_merged.nc4'))
-            self.assertEqual(data['title'], f'{collection_name}_merged.nc4')
+            self.assertTrue(data['href'].endswith(
+                f"{datetime.fromisoformat(properties['end_datetime']).strftime('%Y%m%dT%H%M%SZ')}_{collection_name}_merged.nc4"
+            ))
+            self.assertTrue(data['title'].endswith(
+                f"{datetime.fromisoformat(properties['end_datetime']).strftime('%Y%m%dT%H%M%SZ')}_{collection_name}_merged.nc4"
+            ))
             self.assertEqual(data['type'], 'application/x-netcdf4')
             self.assertEqual(data['roles'], ['data'])
 
