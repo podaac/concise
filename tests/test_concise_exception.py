@@ -72,3 +72,26 @@ def test_module_identifier():
         concise_exception = ConciseException(original_error)
         
         assert concise_exception.category == 'podaac/concise'
+
+def test_exception_with_no_traceback():
+    """
+    Test handling of an exception without an existing traceback.
+    """
+    # Create an exception without a traceback
+    try:
+        raise ValueError("Test exception without traceback")
+    except ValueError as original_error:
+        # Deliberately remove the traceback
+        original_error.__traceback__ = None
+        
+        # Create ConciseException
+        concise_exception = ConciseException(original_error)
+        
+        # Verify that a traceback was generated
+        assert concise_exception.original_exception is not None
+        
+        # Check that the message is still formatted
+        error_msg = concise_exception.message
+        assert "Error in file" in error_msg
+        assert "in function" in error_msg
+        assert "Test exception without traceback" in error_msg
