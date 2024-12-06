@@ -1,7 +1,7 @@
 """A Harmony CLI wrapper around Concise"""
 
 from argparse import ArgumentParser
-import harmony_service_lib
+import harmony_service_lib as harmony
 from podaac.merger.harmony.service import ConciseService
 
 
