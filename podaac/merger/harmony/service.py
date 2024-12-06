@@ -7,6 +7,7 @@ from shutil import copyfile
 from urllib.parse import urlsplit
 from uuid import uuid4
 import traceback
+import sys
 
 from harmony_service_lib.adapter import BaseHarmonyAdapter
 from harmony_service_lib.util import bbox_to_geometry, stage
@@ -23,9 +24,16 @@ NETCDF4_MIME = 'application/x-netcdf4'  # pylint: disable=invalid-name
 
 
 class ConciseException(HarmonyException):
-    """Base class for exceptions in the Harmony GDAL Adapter."""
-
+    """Concise Exception class for custom error messages to see in harmony api calls."""
     def __init__(self, original_exception):
+        # Ensure we can extract traceback information
+        if original_exception.__traceback__ is None:
+            # Capture the current traceback if not already present
+            try:
+                raise original_exception
+            except type(original_exception):
+                original_exception.__traceback__ = sys.exc_info()[2]
+
         # Extract the last traceback entry (most recent call) for the error location
         tb = traceback.extract_tb(original_exception.__traceback__)[-1]
 
@@ -39,7 +47,11 @@ class ConciseException(HarmonyException):
         readable_message = (f"Error in file '{filename}', line {lineno}, in function '{funcname}': "
                             f"{error_msg}")
 
-        super().__init__(readable_message, 'nasa/harmony-gdal-adapter')
+        # Call the parent class constructor with the formatted message and category
+        super().__init__(readable_message, 'podaac/concise')
+
+        # Store the original exception for potential further investigation
+        self.original_exception = original_exception
 
 
 class ConciseService(BaseHarmonyAdapter):
