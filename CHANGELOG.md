@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - [issue #117](https://github.com/podaac/concise/issues/117): Add part of URL to output file name
   - Update python libraries
     - Update harmony service lib that changed project structure
-  - Add Concise exception to propogate up to harmony api calls
+  - Add Concise exception to propogate up to harmony api calls.
 ### Deprecated
 ### Removed
 ### Fixed
