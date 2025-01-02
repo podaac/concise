@@ -58,6 +58,7 @@ def max_var_memory(file_list: list[Path], var_info: dict, max_dims) -> int:
     return max_var_mem
 
 
+# pylint: disable=too-many-positional-arguments
 def run_merge(merged_dataset: nc.Dataset,
               file_list: list[Path],
               var_info: dict,

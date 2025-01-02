@@ -236,14 +236,10 @@ def _run_multi_core(file_list: list[Path],
         if var_info is None:
             var_info = result['var_info']
         elif var_info != result['var_info']:
-            if set(var_info.keys()).difference(result['var_info']):
-                # If not all variables match, only compare variables that intersect
-                intersecting_vars = set(var_info).intersection(result['var_info'])
-                if list(
-                        map(var_info.get, intersecting_vars)
-                ) != list(map(result['var_info'].get, intersecting_vars)):
-                    raise RuntimeError('Variable schemas are inconsistent between granules')
-                var_info.update(result['var_info'])
+            intersecting_vars = set(var_info).intersection(result['var_info'])
+            if any(var_info[var] != result['var_info'][var] for var in intersecting_vars):
+                raise RuntimeError('Variable schemas are inconsistent between granules')
+            var_info.update(result['var_info'])
 
         # The following data requires accumulation methods
         merge_max_dims(max_dims, result['max_dims'])
@@ -317,6 +313,7 @@ def _run_worker(in_queue: Queue, results: list[dict]) -> None:
         })
 
 
+# pylint: disable=,too-many-positional-arguments
 def process_groups(parent_group: nc.Dataset | nc.Group,
                    group_list: list,
                    max_dims: dict,

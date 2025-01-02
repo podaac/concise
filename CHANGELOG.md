@@ -13,6 +13,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 
+## [0.10.0]
+
+### Added
+  - Update Github Actions
+    - Added harmony deployment into github actions.
+### Changed
+  - [issue #117](https://github.com/podaac/concise/issues/117): Add part of URL to output file name
+  - Update python libraries
+    - Update harmony service lib that changed project structure
+  - Add Concise exception to propogate up to harmony api calls.
+### Deprecated
+### Removed
+### Fixed
+  - Variable Merging
+    - Fixed way we merge variables when granules in a collection have varying variables.
+
+
 ## [0.9.0]
 
 ### Added

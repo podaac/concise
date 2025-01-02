@@ -8,8 +8,8 @@ import queue
 import re
 from urllib.parse import urlparse
 
-from harmony.logging import build_logger
-from harmony.util import download
+from harmony_service_lib.logging import build_logger
+from harmony_service_lib.util import download
 
 
 def multi_core_download(urls, destination_dir, access_token, cfg, process_count=None):
