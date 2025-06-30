@@ -82,7 +82,7 @@ jobs:
           poetry run pytest --junitxml=build/reports/pytest.xml --cov=podaac/ --cov-report=xml:build/reports/coverage.xml -m "not aws and not integration" tests/
       
       - name: SonarCloud Scan
-        uses: sonarsource/sonarqube-scan-action@v4
+        uses: sonarsource/sonarqube-scan-action@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -132,22 +132,14 @@ jobs:
           git tag -a "${{ env.software_version }}" -m "Version ${{ env.software_version }}"
           git push origin "${{ env.software_version }}"
 
-      - name: Configure AWS credentials for UAT
-        if: env.venue == 'uat'
-        uses: aws-actions/configure-aws-credentials@v3
+      - name: Configure AWS credentials
+        if: env.venue == 'uat' || env.venue == 'ops'
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_CUMULUS_UAT }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_CUMULUS_UAT }}
+          aws-access-key-id: ${{ secrets[env.venue == 'uat' && 'AWS_ACCESS_KEY_ID_CUMULUS_UAT' || 'AWS_ACCESS_KEY_ID_CUMULUS_OPS'] }}
+          aws-secret-access-key: ${{ secrets[env.venue == 'uat' && 'AWS_SECRET_ACCESS_KEY_CUMULUS_UAT' || 'AWS_SECRET_ACCESS_KEY_CUMULUS_OPS'] }}
           aws-region: us-west-2
-
-      - name: Configure AWS credentials for OPS
-        if: env.venue == 'ops'
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_CUMULUS_OPS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_CUMULUS_OPS }}
-          aws-region: us-west-2
-
+    
       - name: Get Lauchpad Token
         id: lambda
         if: |
@@ -262,7 +254,7 @@ jobs:
       - name: Build and push Docker image
         if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
         id: docker-push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/Dockerfile
