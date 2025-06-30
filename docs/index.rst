@@ -3,30 +3,41 @@ Welcome to CONCISE (CONCatenatIon SErvice)
 
 |version_badge|
 
+CONCISE is a Python package and Harmony service for concatenating Level 2 (L2) dataset granules together. 
+It is designed to efficiently merge large multi-dimensional datasets, leveraging `netcdf4-python` and multi-core optimizations. 
+The service provides a robust, production-grade solution for NASA's data processing pipelines, enabling scalable and performant granule merging.
 
-CONCISE is a Python package for merging dataset granules together. The package is a port of the
-merging functionality from the l2ss-subset-worker Java project primarily utilizing the
-netcdf4-python package and *a lot* of multi-core optimizations. The primary merging logic was
-derrived from the :code:`gov.nasa.jpl.podaac.subsetter.netcdf.NetCDFSubsetter` class. The
-package includes an integration with the Harmony service via :code:`harmony-service-lib`.
+Features
+--------
 
-The integration with upstream Harmony itself is currently incomplete. A fork of Harmony was
-created to test the integration in the meanwhile. In order to workaround Harmony's current
-lack of support for many-to-one services and OCG's Coverages API specification, a custom MIME
-was defined as part of the :code:`output_formats` for the service in :code:`services.yml`. A
-snippet of this workaround follows.
+- Supports concatenation of L2 granules for Earth science data.
+- Designed as a Harmony backend service for seamless integration into NASA Harmony workflows.
+- High-performance merging using multi-core processing.
+- Comprehensive unit tests included for code reliability.
+- Distributed as a Python package (published to PyPI).
+- Docker image available for containerized deployments.
 
-.. code-block:: yaml
+Contributing
+------------
 
-    capabilities:
-      output_formats:
-        - application/x-netcdf4.merge
+If you would like to contribute to CONCISE, refer to the `contribution document <https://github.com/podaac/concise/blob/main/CONTRIBUTING.md>`_.
 
-One possible route towards integrating CONCISE with Harmony and maintaining OCG API compliance
-is to extend the NetCDF4 MIME with additional metadata. For example:
-:code:`application/x-netcdf4;merged=true`. Metadata at the end of MIMEs is seen as a valid part
-of the MIME specification according to
-`RFC 6838 <https://datatracker.ietf.org/doc/html/rfc6838#section-4.2.5>`_.
+How to Test Locally
+-------------------
+
+CONCISE provides comprehensive unit tests that can be run locally. 
+To run all tests:
+
+.. code-block:: shell
+
+    poetry run pytest tests/
+
+Harmony Integration
+-------------------
+
+CONCISE is implemented as a Harmony service, enabling it to fit into NASA's scalable, cloud-based data processing environment. 
+For more on Harmony, see the `harmony-service-lib <https://github.com/nasa/harmony-service-lib-py>`_.
+
 
 .. toctree::
     :maxdepth: 3
