@@ -1,6 +1,9 @@
 Welcome to CONCISE (CONCatenatIon SErvice)
 ==========================================
 
+|version_badge|
+
+
 CONCISE is a Python package for merging dataset granules together. The package is a port of the
 merging functionality from the l2ss-subset-worker Java project primarily utilizing the
 netcdf4-python package and *a lot* of multi-core optimizations. The primary merging logic was
