@@ -33,7 +33,7 @@ The resulting concatenated file maintains data integrity while providing a unifi
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.12 or higher
 - Poetry (for dependency management)
 
 ### Setup
