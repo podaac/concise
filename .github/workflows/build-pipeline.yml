@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
 
 env:
-  POETRY_VERSION: "1.3.1"
-  PYTHON_VERSION: "3.10"
+  POETRY_VERSION: "2.1.3"
+  PYTHON_VERSION: "3.12"
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -22,70 +22,67 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     steps:
+      
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      
       - name: Install Poetry
-        uses: abatilo/actions-poetry@v2
+        uses: abatilo/actions-poetry@v4
         with:
           poetry-version: ${{ env.POETRY_VERSION }}
+      
       - name: Get version
         id: get-version
         run: |
           echo "current_version=$(poetry version | awk '{print $2}')" >> $GITHUB_OUTPUT
           echo "pyproject_name=$(poetry version | awk '{print $1}')" >> $GITHUB_ENV
-      - name: Bump pre-alpha version
-        # If triggered by push to a feature branch
-        if: ${{ startsWith(github.ref, 'refs/heads/feature/') }}
+      
+      - name: Bump version and set venue
+        id: bump-version
         run: |
-          new_ver="${{ steps.get-version.outputs.current_version }}+$(git rev-parse --short ${GITHUB_SHA})"
-          poetry version $new_ver
-          echo "software_version=$(poetry version | awk '{print $2}')" >> $GITHUB_ENV
-      - name: Bump alpha version
-        # If triggered by push to the develop branch
-        if: ${{ github.ref == 'refs/heads/develop' }}
-        run: |
-          poetry version prerelease
-          echo "software_version=$(poetry version | awk '{print $2}')" >> $GITHUB_ENV
-          echo "venue=sit" >> $GITHUB_ENV
-      - name: Bump rc version
-        # If triggered by push to a release branch
-        if: ${{ startsWith(github.ref, 'refs/heads/release/') }}
-        env:
-          # True if the version already has a 'rc' pre-release identifier
-          BUMP_RC: ${{ contains(steps.get-version.outputs.current_version, 'rc') }}
-        run: |
-          if [ "$BUMP_RC" = true ]; then
+          ref="${GITHUB_REF#refs/heads/}"
+          current_version="${{ steps.get-version.outputs.current_version }}"
+
+          if [[ "$ref" == feature/* ]]; then
+            new_ver="${current_version}+$(git rev-parse --short ${GITHUB_SHA})"
+            poetry version "$new_ver"
+            echo "venue=sit" >> $GITHUB_ENV
+          elif [[ "$ref" == "develop" ]]; then
             poetry version prerelease
-          else
-            poetry version ${GITHUB_REF#refs/heads/release/}rc1
+            echo "venue=sit" >> $GITHUB_ENV
+          elif [[ "$ref" == release/* ]]; then
+            if [[ "$current_version" == *rc* ]]; then
+              poetry version prerelease
+            else
+              poetry version "${ref#release/}rc1"
+            fi
+            echo "venue=uat" >> $GITHUB_ENV
+          elif [[ "$ref" == main* ]]; then
+            # Remove rc* from the end of the version string
+            release_ver="${current_version%%rc*}"
+            poetry version "$release_ver"
+            echo "venue=ops" >> $GITHUB_ENV
           fi
+
           echo "software_version=$(poetry version | awk '{print $2}')" >> $GITHUB_ENV
-          echo "venue=uat" >> $GITHUB_ENV
-      - name: Release version
-        # If triggered by push to the main branch
-        if: ${{ startsWith(github.ref, 'refs/heads/main') }}
-        env:
-          CURRENT_VERSION: ${{ steps.get-version.outputs.current_version }}
-        # Remove rc* from end of version string
-        # The ${string%%substring} syntax below deletes the longest match of $substring from back of $string.
-        run: |
-          poetry version ${CURRENT_VERSION%%rc*}
-          echo "software_version=$(poetry version | awk '{print $2}')" >> $GITHUB_ENV
-          echo "venue=ops" >> $GITHUB_ENV
+      
       - name: Install concise
         run: poetry install
+      
       - name: Lint
         run: |
           poetry run pylint podaac
           poetry run flake8 podaac
+      
       - name: Test and coverage
         run: |
           poetry run pytest --junitxml=build/reports/pytest.xml --cov=podaac/ --cov-report=xml:build/reports/coverage.xml -m "not aws and not integration" tests/
+      
       - name: SonarCloud Scan
-        uses: sonarsource/sonarqube-scan-action@v4
+        uses: sonarsource/sonarqube-scan-action@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -99,6 +96,7 @@ jobs:
             -Dsonar.projectName=podaac-concise
             -Dsonar.projectVersion=${{ env.software_version }}
             -Dsonar.python.version=${{ env.PYTHON_VERSION }}
+      
       - name: Run Snyk as a blocking step
         uses: snyk/actions/python-3.10@master
         env:
@@ -110,6 +108,7 @@ jobs:
               --project-name=${{ github.repository }}
               --severity-threshold=high
               --fail-on=all
+      
       - name: Run Snyk on Python
         uses: snyk/actions/python-3.10@master
         env:
@@ -119,27 +118,47 @@ jobs:
           args: >
             --org=${{ secrets.SNYK_ORG_ID }}
             --project-name=${{ github.repository }}
-      - name: Commit Version Bump
-        # If building develop, a release branch, or main then we commit the version bump back to the repo
+      
+      - name: Commit version bump and push tag
         if: |
           github.ref == 'refs/heads/develop' ||
           github.ref == 'refs/heads/main'    ||
           startsWith(github.ref, 'refs/heads/release')
         run: |
-          git config --global user.name 'concise bot'
-          git config --global user.email 'concise@noreply.github.com'
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git commit -am "/version ${{ env.software_version }}"
           git push
-      - name: Push Tag
+          git tag -a "${{ env.software_version }}" -m "Version ${{ env.software_version }}"
+          git push origin "${{ env.software_version }}"
+
+      - name: Configure AWS credentials
+        if: env.venue == 'uat' || env.venue == 'ops'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets[env.venue == 'uat' && 'AWS_ACCESS_KEY_ID_CUMULUS_UAT' || 'AWS_ACCESS_KEY_ID_CUMULUS_OPS'] }}
+          aws-secret-access-key: ${{ secrets[env.venue == 'uat' && 'AWS_SECRET_ACCESS_KEY_CUMULUS_UAT' || 'AWS_SECRET_ACCESS_KEY_CUMULUS_OPS'] }}
+          aws-region: us-west-2
+    
+      - name: Get Lauchpad Token
+        id: launchpad_token_generator
         if: |
-          github.ref == 'refs/heads/develop' ||
           github.ref == 'refs/heads/main'    ||
           startsWith(github.ref, 'refs/heads/release')
         run: |
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          git tag -a "${{ env.software_version }}" -m "Version ${{ env.software_version }}"
-          git push origin "${{ env.software_version }}"
+          OUTPUT_FILE=result.json
+
+          PAYLOAD=$(echo '{"client_id": "ConciseGithubAction", "minimum_alive_secs": 300}' | base64)
+
+          aws lambda invoke \
+            --function-name ${{ env.venue }}-launchpad_token_dispenser \
+            --payload "$PAYLOAD" \
+            $OUTPUT_FILE > /dev/null 2>&1
+
+          RESULT=$(jq -r '.sm_token' < "$OUTPUT_FILE")
+          echo "::add-mask::$RESULT"
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
+
       - name: Publish UMM-S with new version
         uses: podaac/cmr-umm-updater@develop
         if: |
@@ -156,44 +175,41 @@ jobs:
           use_associations: 'false'
           umm_version: '1.5.2'
         env:
-          LAUNCHPAD_TOKEN_SIT: ${{secrets.LAUNCHPAD_TOKEN_SIT}}
-          LAUNCHPAD_TOKEN_UAT: ${{secrets.LAUNCHPAD_TOKEN_UAT}}
-          LAUNCHPAD_TOKEN_OPS: ${{secrets.LAUNCHPAD_TOKEN_OPS}}
-      - name: Publish L2ss Concise Chain UMM-S with new version
-        uses: podaac/cmr-umm-updater@develop
-        if: |
-          github.ref == 'refs/heads/main'    ||
-          startsWith(github.ref, 'refs/heads/release')
-        with:
-          umm-json: 'cmr/l2ss_concise_chain_cmr_umm_s.json'
-          provider: 'POCLOUD'
-          env: ${{ env.venue }}
-          version: ${{ env.software_version }}
-          timeout: 60
-          disable_removal: 'true'
-          umm_type: 'umm-s'
-          use_associations: 'false'
-          umm_version: '1.5.2'
-        env:
-          LAUNCHPAD_TOKEN_SIT: ${{secrets.LAUNCHPAD_TOKEN_SIT}}
-          LAUNCHPAD_TOKEN_UAT: ${{secrets.LAUNCHPAD_TOKEN_UAT}}
-          LAUNCHPAD_TOKEN_OPS: ${{secrets.LAUNCHPAD_TOKEN_OPS}}
+          LAUNCHPAD_TOKEN_SIT: ${{ steps.launchpad_token_generator.outputs.result }}
+          LAUNCHPAD_TOKEN_UAT: ${{ steps.launchpad_token_generator.outputs.result }}
+          LAUNCHPAD_TOKEN_OPS: ${{ steps.launchpad_token_generator.outputs.result }}
+
       - name: Build Docs
+        if: |
+          github.ref == 'refs/heads/main'
         run: |
           poetry run sphinx-build -b html ./docs docs/_build/
-      - name: Publish Docs
+
+      - name: Prepare combined folder for deploy
+        if: |
+          github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p deploy_dir/${{ env.software_version }}
+          cp -r docs/_build/* deploy_dir/${{ env.software_version }}/
+          cp -r docs/_build/* deploy_dir/
+
+      - name: Deploy combined docs
+        if: github.ref == 'refs/heads/main'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: gh-pages # The branch the action should deploy to.
-          folder: docs/_build/ # The folder the action should deploy.
-          target-folder: ${{ env.software_version }}
+          branch: gh-pages
+          folder: deploy_dir
+          clean: false
+
       - name: Build Python Artifact
         run: |
           poetry build
+      
       - uses: actions/upload-artifact@v4
         with:
           name: python-artifact
           path: dist/*
+      
       - name: Publish to test.pypi.org
         if: |
           github.ref == 'refs/heads/develop' ||
@@ -203,12 +219,14 @@ jobs:
         run: |
           poetry config repositories.testpypi https://test.pypi.org/legacy/
           poetry publish -r testpypi
+      
       - name: Publish to pypi.org
         if: ${{ github.ref == 'refs/heads/main' }}
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{secrets.POETRY_PYPI_TOKEN_PYPI}}
         run: |
           poetry publish
+      
       - name: Log in to the Container registry
         if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
         uses: docker/login-action@v3
@@ -216,6 +234,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Extract metadata (tags, labels) for Docker
         if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
         id: meta
@@ -225,15 +244,17 @@ jobs:
           tags: |
             type=raw,pattern={{version}},value=${{ env.software_version }}
             type=raw,value=${{ env.venue }}
+      
       - name: Wait for package
         if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
         run: |
           pip install tenacity
           ${GITHUB_WORKSPACE}/.github/workflows/wait-for-pypi.py ${{env.pyproject_name}}[harmony]==${{ env.software_version }}
+      
       - name: Build and push Docker image
         if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
         id: docker-push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/Dockerfile
@@ -243,6 +264,20 @@ jobs:
           pull: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Run Snyk on Docker Image
+        if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
+        # Snyk can be used to break the build when it detects vulnerabilities.
+        # In this case we want to upload the issues to GitHub Code Scanning
+        continue-on-error: true
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ steps.meta.outputs.tags[0] }}
+          args: >
+            --severity-threshold=high
+
       - name: Deploy Harmony
         env:
             ENV: ${{ env.venue }}
@@ -254,6 +289,7 @@ jobs:
         working-directory: deployment
         run: 
           poetry run python harmony_deploy.py --tag ${{ env.software_version }} 
+
       - name: Create Release
         id: create_release
         if: |
@@ -265,31 +301,3 @@ jobs:
           draft: false
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}
-
-# As of 2023/01/23 these steps below for scanning the Docker image with Snyk are failing. I've tried both the official Snyk
-# action https://github.com/snyk/actions/tree/master/docker and this method below of manually calling the CLI.
-# The error when using the official Snyk action is
-#   "Could not detect package manager for file: ./docker/Dockerfile"
-# The error when trying to run it manually is
-#   "The image does not exist for the current platform"
-# Commenting these steps out for now so they don't fail the build. Will try revisiting again in the future when Snyk is updated.
-# 
-#       - uses: snyk/actions/setup@master
-#         if: |
-#           steps.docker-push.conclusion == 'success'
-#       - name: Run Snyk on Docker Image
-#         if: |
-#           steps.docker-push.conclusion == 'success'
-#         # Snyk can be used to break the build when it detects vulnerabilities.
-#         # In this case we want to upload the issues to GitHub Code Scanning
-#         continue-on-error: true
-#         run: |
-#           snyk test --severity-threshold=high --file=./docker/Dockerfile --sarif-file-output=docker.sarif --docker ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.software_version }}
-#         env:
-#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-#       - name: Upload result to GitHub Code Scanning
-#         if: |
-#           steps.docker-push.conclusion == 'success'
-#         uses: github/codeql-action/upload-sarif@v2
-#         with:
-#           sarif_file: ./
