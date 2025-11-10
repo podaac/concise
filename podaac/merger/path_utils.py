@@ -3,7 +3,6 @@ Utilities used throughout the merging implementation to simplify group path reso
 and generation
 """
 import netCDF4 as nc
-from collections import defaultdict
 
 
 def get_group_path(group: nc.Group, resource: str) -> str:
@@ -85,10 +84,34 @@ def resolve_dim(dims: dict, group_path: str, dim_name: str):
     return dims[dim_name]
 
 
-def collapse_dims(dims):
-    # dims = {path: size}
+def collapse_dims(dims: dict) -> dict:
+    """
+    Collapse redundant child-dimension paths when a root dimension already exists.
+
+    If a dimension exists at the root level (e.g., "/mirror_step") and a child
+    path also defines the same dimension (e.g., "/product/mirror_step"), the
+    child dimension is removed because it is redundant and should inherit from the parent.
+
+    Dimensions that appear only in child groups (i.e., have no parent/root version)
+    are preserved.
+
+    Parameters
+    ----------
+    dims : dict
+        Dictionary of {path: size}, where paths are HDF5/NetCDF-style dimension paths.
+
+        Example keys:
+            "/mirror_step"
+            "/product/mirror_step"
+            "/support_data/swt_level"
+
+    Returns
+    -------
+    dict
+        A new dictionary with redundant child dimension declarations removed.
+    """
     result = {}
-    
+
     # Collect root dim names like "/mirror_step"
     root_dims = {p for p in dims if p.count("/") == 1}
 
@@ -98,8 +121,6 @@ def collapse_dims(dims):
         # If dim has a root version and this is NOT that root path → drop it
         if dim in root_dims and path != dim:
             continue
-
         result[path] = size
 
     return result
-
