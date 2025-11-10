@@ -138,7 +138,7 @@ def _run_single_core(merged_dataset: nc.Dataset,
                     merged_var[i] = np.full(target_shape, fill_value)
                     continue
 
-                resized = resize_var(ds_var, var_meta, max_dims)
+                resized = resize_var(ds_var, var_meta, max_dims, var_path)
                 merged_var[i] = resized
 
 
@@ -265,7 +265,7 @@ def _run_worker(in_queue, out_queue, max_dims, var_info, memory_limit, lock):
                     target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
                     resized_arr = np.full(target_shape, fill_value)
                 else:
-                    resized_arr = resize_var(ds_var, var_meta, max_dims)
+                    resized_arr = resize_var(ds_var, var_meta, max_dims, var_path)
 
                 if resized_arr.nbytes > max_memory_size:
                     raise RuntimeError(f'Merging failed - MAX MEMORY REACHED: {resized_arr.nbytes}')
@@ -305,7 +305,7 @@ def _check_exit(processes: list):
                 raise RuntimeError(f'Merging failed - exit code: {process.exitcode}')
 
 
-def resize_var(var: nc.Variable, var_info, max_dims: dict) -> np.ndarray:
+def resize_var(var: nc.Variable, var_info, max_dims: dict, var_path) -> np.ndarray:
     """
     Resizes a variable's data to the maximum dimensions found in preprocessing.
     This method will never downscale a variable and only performs bottom and
@@ -322,6 +322,7 @@ def resize_var(var: nc.Variable, var_info, max_dims: dict) -> np.ndarray:
 
     Returns
     -------
+
     np.ndarray
         An ndarray containing the resized data
     """
@@ -330,8 +331,17 @@ def resize_var(var: nc.Variable, var_info, max_dims: dict) -> np.ndarray:
         return var[:]
 
     # generate an ordered array of new widths
+    print(var_path)
+    print(var_info.group_path)
+    print(max_dims)
     dims = [resolve_dim(max_dims, var_info.group_path, dim.name) - dim.size for dim in var.get_dims()]
+    for dim in var.get_dims():
+        print(dim.name)
+        print(dim.size)
+    print(dims)
     widths = [[0, dim] for dim in dims]
+    print(widths)
+    print("######################################################################")
 
     # Legacy merger doesn't explicitly define this behavior, but its resizer
     # fills its resized arrays with 0s upon initialization. Sources:

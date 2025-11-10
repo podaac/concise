@@ -3,6 +3,7 @@ Utilities used throughout the merging implementation to simplify group path reso
 and generation
 """
 import netCDF4 as nc
+from collections import defaultdict
 
 
 def get_group_path(group: nc.Group, resource: str) -> str:
@@ -82,3 +83,23 @@ def resolve_dim(dims: dict, group_path: str, dim_name: str):
 
     # Attempt to find dim in root node
     return dims[dim_name]
+
+
+def collapse_dims(dims):
+    # dims = {path: size}
+    result = {}
+    
+    # Collect root dim names like "/mirror_step"
+    root_dims = {p for p in dims if p.count("/") == 1}
+
+    for path, size in dims.items():
+        dim = "/" + path.split("/")[-1]
+
+        # If dim has a root version and this is NOT that root path → drop it
+        if dim in root_dims and path != dim:
+            continue
+
+        result[path] = size
+
+    return result
+
