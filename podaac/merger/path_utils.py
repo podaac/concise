@@ -90,7 +90,7 @@ def collapse_dims(dims: dict) -> dict:
 
     If a dimension exists at the root level (e.g., "/mirror_step") and a child
     path also defines the same dimension (e.g., "/product/mirror_step"), the
-    child dimension is removed because it is redundant and should inherit from the parent.
+    child dimension is removed as it is redundant; resolution of the dimension will fall back to the root dimension via the existing resolve_dim logic.
 
     Dimensions that appear only in child groups (i.e., have no parent/root version)
     are preserved.
