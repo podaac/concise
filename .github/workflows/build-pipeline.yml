@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  POETRY_VERSION: "1.8.1"
+  POETRY_VERSION: "2.2.1"
   PYTHON_VERSION: "3.12"
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}

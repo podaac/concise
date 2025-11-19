@@ -322,7 +322,6 @@ def resize_var(var: nc.Variable, var_info, max_dims: dict) -> np.ndarray:
 
     Returns
     -------
-
     np.ndarray
         An ndarray containing the resized data
     """
