@@ -116,10 +116,10 @@ def collapse_dims(dims: dict) -> dict:
     root_dims = {p for p in dims if p.count("/") == 1}
 
     for path, size in dims.items():
-        dim = "/" + path.split("/")[-1]
-
-        # If dim has a root version and this is NOT that root path → drop it
-        if dim in root_dims and path != dim:
+        dim_name = path.split("/")[-1]
+        root_dim_path = f"/{dim_name}"
+        # If root-level version exists and this is NOT that root path → drop it
+        if root_dim_path in root_dims and path != root_dim_path:
             continue
         result[path] = size
 
