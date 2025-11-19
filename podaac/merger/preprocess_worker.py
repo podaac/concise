@@ -10,7 +10,7 @@ import importlib_metadata
 import netCDF4 as nc
 import numpy as np
 
-from podaac.merger.path_utils import get_group_path, collapse_dims
+from podaac.merger.path_utils import get_group_path  # collapse_dims
 from podaac.merger.variable_info import VariableInfo
 
 
