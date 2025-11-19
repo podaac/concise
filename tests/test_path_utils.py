@@ -66,7 +66,7 @@ class PathUtilsTest(TestCase):
             '/group/dim_2': 13,
             '/group/subgroup/dim_0': 10,
         }
-        # collapse_dims should return a dict with only the most specific dimension for each name
+        # collapse_dims should remove child dimensions when a root dimension exists
         collapsed = path_utils.collapse_dims(dims)
         # Should keep the most specific (deepest) path for each dim name
         expected = {
