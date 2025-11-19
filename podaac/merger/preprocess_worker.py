@@ -249,7 +249,7 @@ def _run_multi_core(file_list: list[Path],
         # Merge history_json entries from input files
         history_json.extend(result['history_json'])
 
-    max_dims = collapse_dims(max_dims)
+    # max_dims = collapse_dims(max_dims)
 
     history_json.append(construct_history(file_list, granule_urls))
     group_metadata[group_list[0]]['history_json'] = json.dumps(
