@@ -13,14 +13,17 @@ from podaac.merger.preprocess_worker import run_preprocess
 
 def is_file_empty(parent_group: nc.Dataset | nc.Group) -> bool:
     """
-    Function to test if any variable size in a dataset is zero
+    Test if a NetCDF file/group has all variables of zero size
+    (recursively checks child groups)
     """
-
     for var in parent_group.variables.values():
         if var.size != 0:
             return False
+
     for child_group in parent_group.groups.values():
-        return is_file_empty(child_group)
+        if not is_file_empty(child_group):  # check all children
+            return False
+
     return True
 
 
@@ -62,7 +65,6 @@ def merge_netcdf_files(original_input_files: list[Path],  # pylint: disable=too-
     start = perf_counter()
 
     input_files = []
-
     # only concatinate files that are not empty
     for file in original_input_files:
         with nc.Dataset(file, 'r') as dataset:
