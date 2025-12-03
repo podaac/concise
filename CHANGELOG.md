@@ -8,9 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 ### Changed
-- Update to python 3.12
-- Update github actions to use launchpad token lambda
-- Update sphinx documentation
+### Deprecated
+### Removed
+### Fixed
+
+
+## [0.11.0]
+
+### Added
+### Changed
+- Updated to Python 3.12
+- Updated Github Actions to use launchpad token lambda
+- Update Sphinx documentation
 - [issue #154](https://github.com/podaac/concise/issues/154): Fix construct history json from none, as we are identifying empty files wrong.
 - [issue #156](https://github.com/podaac/concise/issues/156): Error in calculating dimensions, fix via collapse function if the dimension inheritance for dims aren't consistent in the files.
 ### Deprecated
