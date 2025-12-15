@@ -57,3 +57,21 @@ class PathUtilsTest(TestCase):
         # test heiarchy resolution
         self.assertEqual(path_utils.resolve_dim(dims, '/group/subgroup', 'dim_2'), 13)  # should resolve to group
         self.assertEqual(path_utils.resolve_dim(dims, '/group/subgroup', 'dim_1'), 11)  # should resolve to root
+
+    def test_collapse_dims(self):
+        dims = {
+            '/dim_0': 10,
+            '/dim_1': 11,
+            '/group/dim_0': 10,
+            '/group/dim_2': 13,
+            '/group/subgroup/dim_0': 10,
+        }
+        # collapse_dims should remove child dimensions when a root dimension exists
+        collapsed = path_utils.collapse_dims(dims)
+        # Should keep the most specific (deepest) path for each dim name
+        expected = {
+            '/dim_1': 11,
+            '/group/dim_2': 13,
+            '/dim_0': 10,
+        }
+        self.assertEqual(collapsed, expected)

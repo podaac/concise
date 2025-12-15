@@ -16,21 +16,22 @@ jobs:
       ${{ startsWith(github.ref, 'refs/heads/release/') }}
     steps:
       # Checks-out the develop branch
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
         with:
           ref: 'refs/heads/develop'
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v6
         with:
-          python-version: 3.8
+          python-version: 3.12
       - name: Install Poetry
-        uses: abatilo/actions-poetry@v2.0.0
+        uses: abatilo/actions-poetry@v4
         with:
-          poetry-version: 1.1.8
+          poetry-version: 2.2.1
       - name: Bump minor version
         run: |
           poetry version ${GITHUB_REF#refs/heads/release/}
           poetry version preminor
           echo "software_version=$(poetry version | awk '{print $2}')" >> $GITHUB_ENV
+
       - name: Commit Version Bump
         run: |
           git config --global user.name 'concise bot'

@@ -82,3 +82,45 @@ def resolve_dim(dims: dict, group_path: str, dim_name: str):
 
     # Attempt to find dim in root node
     return dims[dim_name]
+
+
+def collapse_dims(dims: dict) -> dict:
+    """
+    Collapse redundant child-dimension paths when a root dimension already exists.
+
+    If a dimension exists at the root level (e.g., "/mirror_step") and a child
+    path also defines the same dimension (e.g., "/product/mirror_step"), the
+    child dimension is removed as it is redundant; resolution of the dimension will fall back to the root dimension via the existing resolve_dim logic.
+
+    Dimensions that appear only in child groups (i.e., have no parent/root version)
+    are preserved.
+
+    Parameters
+    ----------
+    dims : dict
+        Dictionary of {path: size}, where paths are HDF5/NetCDF-style dimension paths.
+
+        Example keys:
+            "/mirror_step"
+            "/product/mirror_step"
+            "/support_data/swt_level"
+
+    Returns
+    -------
+    dict
+        A new dictionary with redundant child dimension declarations removed.
+    """
+    result = {}
+
+    # Collect root dim names like "/mirror_step"
+    root_dims = {p for p in dims if p.count("/") == 1}
+
+    for path, size in dims.items():
+        dim_name = path.split("/")[-1]
+        root_dim_path = f"/{dim_name}"
+        # If root-level version exists and this is NOT that root path → drop it
+        if root_dim_path in root_dims and path != root_dim_path:
+            continue
+        result[path] = size
+
+    return result
