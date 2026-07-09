@@ -31,6 +31,7 @@ Sphinx = "^9.0.0"
 requests = "^2.25.1"
 sphinx-rtd-theme = "^3.0.2"
 papermill = "^2.3.4"
+pystac = ">=1.14.0,<1.15.0"
 
 [tool.poetry.scripts]
 merge = 'podaac.merger.merge_cli:main'
