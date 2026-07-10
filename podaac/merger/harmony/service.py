@@ -1,5 +1,6 @@
 """A Harmony service wrapper around the Concise module"""
 
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -124,28 +125,41 @@ class ConciseService(BaseHarmonyAdapter):
             first_granule_url = []
             get_granule_url(items[0], first_granule_url)
             first_url_name = Path(first_granule_url[0]).stem
-            filename = f'{first_url_name}_{datetimes[1].strftime("%Y%m%dT%H%M%SZ")}_{collection}_merged.nc4'
 
-            with TemporaryDirectory() as temp_dir:
-                self.logger.info('Starting granule downloads')
-                input_files = multi_core_download(granule_urls, temp_dir, self.message.accessToken, self.config)
-                self.logger.info('Finished granule downloads')
+            max_granules = int(os.environ.get('MAX_GRANULES_PER_BATCH', '0'))
 
-                output_path = Path(temp_dir).joinpath(filename).resolve()
-                merge_netcdf_files(input_files, output_path, granule_urls, logger=self.logger)
-                staged_url = self._stage(str(output_path), filename, NETCDF4_MIME)
+            if max_granules > 0 and len(granule_urls) > max_granules:
+                batches = [
+                    granule_urls[i:i + max_granules]
+                    for i in range(0, len(granule_urls), max_granules)
+                ]
+            else:
+                batches = [granule_urls]
 
-            # -- Output to STAC catalog --
             result.clear_items()
             properties = {
                 "start_datetime": datetimes[0].isoformat(),
                 "end_datetime": datetimes[1].isoformat()
             }
 
-            item = Item(str(uuid4()), bbox_to_geometry(bbox), bbox, None, properties)
-            asset = Asset(staged_url, title=filename, media_type=NETCDF4_MIME, roles=['data'])
-            item.add_asset('data', asset)
-            result.add_item(item)
+            for batch_idx, batch_urls in enumerate(batches):
+                batch_suffix = f'_batch{batch_idx + 1}' if len(batches) > 1 else ''
+                filename = f'{first_url_name}_{datetimes[1].strftime("%Y%m%dT%H%M%SZ")}_{collection}_merged{batch_suffix}.nc4'
+
+                with TemporaryDirectory() as temp_dir:
+                    self.logger.info('Starting granule downloads for batch %d/%d (%d granules)',
+                                     batch_idx + 1, len(batches), len(batch_urls))
+                    input_files = multi_core_download(batch_urls, temp_dir, self.message.accessToken, self.config)
+                    self.logger.info('Finished granule downloads for batch %d/%d', batch_idx + 1, len(batches))
+
+                    output_path = Path(temp_dir).joinpath(filename).resolve()
+                    merge_netcdf_files(input_files, output_path, batch_urls, logger=self.logger)
+                    staged_url = self._stage(str(output_path), filename, NETCDF4_MIME)
+
+                item = Item(str(uuid4()), bbox_to_geometry(bbox), bbox, None, properties)
+                asset = Asset(staged_url, title=filename, media_type=NETCDF4_MIME, roles=['data'])
+                item.add_asset('data', asset)
+                result.add_item(item)
 
             return result
 

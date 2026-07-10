@@ -83,7 +83,7 @@ def run_merge(merged_dataset: nc.Dataset,
     logger
     """
 
-    if process_count == 1:
+    if process_count == 1 or len(file_list) > 100:
         _run_single_core(merged_dataset, file_list, var_info, max_dims, logger)
     else:
         # Merging is bottlenecked at the write process which is single threaded
@@ -105,7 +105,8 @@ def _run_single_core(merged_dataset: nc.Dataset,
                      max_dims: dict,
                      logger: logging.Logger):
     """
-    Run the variable merge in the current thread/single-core mode
+    Run the variable merge in the current thread/single-core mode.
+    Processes one variable at a time across all files to minimize peak memory.
 
     Parameters
     ----------
@@ -122,37 +123,29 @@ def _run_single_core(merged_dataset: nc.Dataset,
 
     logger.info("Running single core ......")
 
-    # Pre-allocate a reusable buffer per variable to avoid repeated allocations
-    buffers = {}
+    for var_path, var_meta in var_info.items():
+        merged_group = resolve_group(merged_dataset, var_path)
+        merged_var = merged_group[0].variables[var_meta.name]
 
-    for i, file in enumerate(file_list):
-        with nc.Dataset(file, 'r') as origin_dataset:
-            origin_dataset.set_auto_maskandscale(False)
+        target_shape = tuple(resolve_dim(max_dims, var_meta.group_path, dim) for dim in var_meta.dim_order)
+        buf = np.empty(target_shape, dtype=var_meta.datatype) if target_shape else None
 
-            for var_path, var_meta in var_info.items():
+        for i, file in enumerate(file_list):
+            with nc.Dataset(file, 'r') as origin_dataset:
+                origin_dataset.set_auto_maskandscale(False)
                 ds_group, var_name = resolve_group(origin_dataset, var_path)
-                merged_group = resolve_group(merged_dataset, var_path)
                 ds_var = ds_group.variables.get(var_name)
-
-                merged_var = merged_group[0].variables[var_name]
 
                 if ds_var is None:
                     if var_meta.fill_value is None:
-                        target_shape = tuple(resolve_dim(max_dims, var_meta.group_path, dim) for dim in var_meta.dim_order)
                         merged_var[i] = np.zeros(target_shape, dtype=var_meta.datatype)
                     continue
 
-                # Get or create reusable buffer for this variable
-                if var_path not in buffers:
-                    target_shape = tuple(resolve_dim(max_dims, var_meta.group_path, dim) for dim in var_meta.dim_order)
-                    if target_shape:
-                        buffers[var_path] = np.empty(target_shape, dtype=var_meta.datatype)
-                    else:
-                        buffers[var_path] = None
-
-                buf = buffers.get(var_path)
                 resized = resize_var(ds_var, var_meta, max_dims, out=buf)
                 merged_var[i] = resized
+
+        del buf
+        merged_dataset.sync()
 
 
 def _run_multi_core(merged_dataset: nc.Dataset,  # pylint: disable=too-many-locals
