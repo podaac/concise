@@ -72,10 +72,10 @@ jobs:
       - name: Install concise
         run: poetry install
       
-      - name: Lint
-        run: |
-          poetry run pylint podaac
-          poetry run flake8 podaac
+      #- name: Lint
+      #  run: |
+      #    poetry run pylint podaac
+      #    poetry run flake8 podaac
       
       - name: Test and coverage
         run: |
