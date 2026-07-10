@@ -265,7 +265,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           build-args: |
-            SOURCE=dist/${{env.pyproject_name}}-${{ env.software_version }}-py3-none-any.whl[harmony]
+            SOURCE=dist/podaac_concise-${{ env.software_version }}-py3-none-any.whl[harmony]
             DIST_PATH=dist/
           push: true
           pull: true
