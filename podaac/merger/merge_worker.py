@@ -83,7 +83,7 @@ def run_merge(merged_dataset: nc.Dataset,
     logger
     """
 
-    if process_count == 1 or len(file_list) > 100:
+    if process_count == 1 or len(file_list) > 500:
         _run_single_core(merged_dataset, file_list, var_info, max_dims, logger)
     else:
         # Merging is bottlenecked at the write process which is single threaded
