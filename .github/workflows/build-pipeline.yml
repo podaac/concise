@@ -216,22 +216,22 @@ jobs:
           name: python-artifact
           path: dist/*
       
-      - name: Publish to test.pypi.org
-        if: |
-          github.ref == 'refs/heads/develop' ||
-          startsWith(github.ref, 'refs/heads/release')
-        env:
-          POETRY_PYPI_TOKEN_TESTPYPI: ${{secrets.POETRY_PYPI_TOKEN_TESTPYPI}}
-        run: |
-          poetry config repositories.testpypi https://test.pypi.org/legacy/
-          poetry publish -r testpypi
-      
-      - name: Publish to pypi.org
-        if: ${{ github.ref == 'refs/heads/main' }}
-        env:
-          POETRY_PYPI_TOKEN_PYPI: ${{secrets.POETRY_PYPI_TOKEN_PYPI}}
-        run: |
-          poetry publish
+      # - name: Publish to test.pypi.org
+      #   if: |
+      #     github.ref == 'refs/heads/develop' ||
+      #     startsWith(github.ref, 'refs/heads/release')
+      #   env:
+      #     POETRY_PYPI_TOKEN_TESTPYPI: ${{secrets.POETRY_PYPI_TOKEN_TESTPYPI}}
+      #   run: |
+      #     poetry config repositories.testpypi https://test.pypi.org/legacy/
+      #     poetry publish -r testpypi
+
+      # - name: Publish to pypi.org
+      #   if: ${{ github.ref == 'refs/heads/main' }}
+      #   env:
+      #     POETRY_PYPI_TOKEN_PYPI: ${{secrets.POETRY_PYPI_TOKEN_PYPI}}
+      #   run: |
+      #     poetry publish
       
       - name: Log in to the Container registry
         if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
@@ -251,11 +251,11 @@ jobs:
             type=raw,pattern={{version}},value=${{ env.software_version }}
             type=raw,value=${{ env.venue }}
       
-      - name: Wait for package
-        if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
-        run: |
-          pip install tenacity
-          ${GITHUB_WORKSPACE}/.github/workflows/wait-for-pypi.py ${{env.pyproject_name}}[harmony]==${{ env.software_version }}
+      # - name: Wait for package
+      #   if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
+      #   run: |
+      #     pip install tenacity
+      #     ${GITHUB_WORKSPACE}/.github/workflows/wait-for-pypi.py ${{env.pyproject_name}}[harmony]==${{ env.software_version }}
       
       - name: Build and push Docker image
         if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}
@@ -265,7 +265,8 @@ jobs:
           context: .
           file: docker/Dockerfile
           build-args: |
-            SOURCE=${{env.pyproject_name}}[harmony]==${{ env.software_version }}
+            SOURCE=dist/${{env.pyproject_name}}-${{ env.software_version }}-py3-none-any.whl[harmony]
+            DIST_PATH=dist/
           push: true
           pull: true
           tags: ${{ steps.meta.outputs.tags }}
