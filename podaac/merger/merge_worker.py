@@ -130,6 +130,8 @@ def _run_single_core(merged_dataset: nc.Dataset,
         target_shape = tuple(resolve_dim(max_dims, var_meta.group_path, dim) for dim in var_meta.dim_order)
         buf = np.empty(target_shape, dtype=var_meta.datatype) if target_shape else None
 
+        zeros_buf = np.zeros(target_shape, dtype=var_meta.datatype) if target_shape and var_meta.fill_value is None else None
+
         for i, file in enumerate(file_list):
             with nc.Dataset(file, 'r') as origin_dataset:
                 origin_dataset.set_auto_maskandscale(False)
@@ -137,14 +139,14 @@ def _run_single_core(merged_dataset: nc.Dataset,
                 ds_var = ds_group.variables.get(var_name)
 
                 if ds_var is None:
-                    if var_meta.fill_value is None:
-                        merged_var[i] = np.zeros(target_shape, dtype=var_meta.datatype)
+                    if zeros_buf is not None:
+                        merged_var[i] = zeros_buf
                     continue
 
                 resized = resize_var(ds_var, var_meta, max_dims, out=buf)
                 merged_var[i] = resized
 
-        del buf
+        del buf, zeros_buf
         merged_dataset.sync()
 
 

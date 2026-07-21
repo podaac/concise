@@ -85,6 +85,7 @@ def merge_netcdf_files(original_input_files: list[Path],  # pylint: disable=too-
     merged_dataset = nc.Dataset(output_file, 'w', format='NETCDF4')
     merged_dataset.set_auto_maskandscale(False)
     init_dataset(merged_dataset, group_list, var_info, max_dims, input_files)
+    _minimize_chunk_cache(merged_dataset)
 
     # -- merge datasets --
     logger.info('Merging datasets...')
@@ -119,6 +120,25 @@ def merge_netcdf_files(original_input_files: list[Path],  # pylint: disable=too-
 
     merged_dataset.close()
     logger.info('Done!')
+
+
+def _minimize_chunk_cache(dataset: nc.Dataset) -> None:
+    """
+    Reduce the per-variable HDF5 chunk cache to 1 MB each.
+    By default netCDF4/HDF5 allocates a large cache per variable which,
+    with many variables, causes memory to balloon during writes.
+    """
+    cache_size = 1024 * 1024  # 1 MB
+    cache_nelems = 521
+    cache_preemption = 0.75
+
+    def _set_cache(group):
+        for var in group.variables.values():
+            var.set_var_chunk_cache(cache_size, cache_nelems, cache_preemption)
+        for child in group.groups.values():
+            _set_cache(child)
+
+    _set_cache(dataset)
 
 
 def clean_metadata(metadata: dict) -> None:
