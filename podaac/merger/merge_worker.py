@@ -349,7 +349,7 @@ def resize_var(var: nc.Variable, var_info, max_dims: dict, out: np.ndarray = Non
     if not needs_padding:
         if out is not None:
             var.set_auto_maskandscale(False)
-            out[:] = var[:]
+            _chunked_read(var, out, src_shape)
             return out
         return var[:]
 
@@ -360,6 +360,21 @@ def resize_var(var: nc.Variable, var_info, max_dims: dict, out: np.ndarray = Non
     else:
         out[:] = fill_value
 
-    slices = tuple(slice(0, s) for s in src_shape)
-    out[slices] = var[:]
+    _chunked_read(var, out, src_shape)
     return out
+
+
+CHUNK_ROWS = 256
+
+
+def _chunked_read(var: nc.Variable, out: np.ndarray, src_shape: tuple):
+    """Read a variable into `out` in chunks along the first dimension to limit peak memory."""
+    if var.ndim == 1 or src_shape[0] <= CHUNK_ROWS:
+        slices = tuple(slice(0, s) for s in src_shape)
+        out[slices] = var[:]
+        return
+
+    for start in range(0, src_shape[0], CHUNK_ROWS):
+        end = min(start + CHUNK_ROWS, src_shape[0])
+        tail_slices = tuple(slice(0, s) for s in src_shape[1:])
+        out[(slice(start, end),) + tail_slices] = var[start:end]
