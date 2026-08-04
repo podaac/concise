@@ -48,7 +48,7 @@ def max_var_memory(file_list: list[Path], var_info: dict, max_dims) -> int:
                 ds_var = ds_group.variables.get(var_name)
 
                 if ds_var is None:
-                    target_shape = tuple(resolve_dim(max_dims, var_meta.group_path, dim) for dim in var_meta.dim_order)
+                    target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
                     var_size = math.prod(target_shape) * var_meta.datatype.itemsize
                     max_var_mem = max(var_size, max_var_mem)
                 else:
@@ -83,7 +83,7 @@ def run_merge(merged_dataset: nc.Dataset,
     logger
     """
 
-    if process_count == 1 or len(file_list) > 500:
+    if process_count == 1:
         _run_single_core(merged_dataset, file_list, var_info, max_dims, logger)
     else:
         # Merging is bottlenecked at the write process which is single threaded
@@ -105,8 +105,7 @@ def _run_single_core(merged_dataset: nc.Dataset,
                      max_dims: dict,
                      logger: logging.Logger):
     """
-    Run the variable merge in the current thread/single-core mode.
-    Processes one variable at a time across all files to minimize peak memory.
+    Run the variable merge in the current thread/single-core mode
 
     Parameters
     ----------
@@ -122,32 +121,38 @@ def _run_single_core(merged_dataset: nc.Dataset,
     """
 
     logger.info("Running single core ......")
+    for i, file in enumerate(file_list):
+        with nc.Dataset(file, 'r') as origin_dataset:
+            origin_dataset.set_auto_maskandscale(False)
 
-    for var_path, var_meta in var_info.items():
-        merged_group = resolve_group(merged_dataset, var_path)
-        merged_var = merged_group[0].variables[var_meta.name]
-
-        target_shape = tuple(resolve_dim(max_dims, var_meta.group_path, dim) for dim in var_meta.dim_order)
-        buf = np.empty(target_shape, dtype=var_meta.datatype) if target_shape else None
-
-        zeros_buf = np.zeros(target_shape, dtype=var_meta.datatype) if target_shape and var_meta.fill_value is None else None
-
-        for i, file in enumerate(file_list):
-            with nc.Dataset(file, 'r') as origin_dataset:
-                origin_dataset.set_auto_maskandscale(False)
+            for var_path, var_meta in var_info.items():
                 ds_group, var_name = resolve_group(origin_dataset, var_path)
+                merged_group = resolve_group(merged_dataset, var_path)
                 ds_var = ds_group.variables.get(var_name)
 
+                merged_var = merged_group[0].variables[var_name]
+
                 if ds_var is None:
-                    if zeros_buf is not None:
-                        merged_var[i] = zeros_buf
+                    fill_value = var_meta.fill_value if var_meta.fill_value is not None else 0
+                    merged_var[i] = fill_value
                     continue
 
-                resized = resize_var(ds_var, var_meta, max_dims, out=buf)
-                merged_var[i] = resized
+                if ds_var.ndim == 0:
+                    merged_var[i] = ds_var[:]
+                    continue
 
-        del buf, zeros_buf
-        merged_dataset.sync()
+                needs_resize = any(
+                    resolve_dim(max_dims, var_meta.group_path, dim.name) != dim.size
+                    for dim in ds_var.get_dims()
+                )
+
+                if not needs_resize:
+                    merged_var[i] = ds_var[:]
+                else:
+                    fill_value = 0 if var_meta.fill_value is None else var_meta.fill_value
+                    merged_var[i] = fill_value
+                    slices = (i,) + tuple(slice(0, dim.size) for dim in ds_var.get_dims())
+                    merged_var[slices] = ds_var[:]
 
 
 def _run_multi_core(merged_dataset: nc.Dataset,  # pylint: disable=too-many-locals
@@ -269,30 +274,25 @@ def _run_worker(in_queue, out_queue, max_dims, var_info, memory_limit, lock):
                 ds_var = ds_group.variables.get(var_name)
 
                 if ds_var is None:
-                    target_shape = tuple(resolve_dim(max_dims, var_meta.group_path, dim) for dim in var_meta.dim_order)
+                    fill_value = var_meta.fill_value
+                    target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
+                    resized_arr = np.full(target_shape, fill_value)
                 else:
-                    target_shape = tuple(resolve_dim(max_dims, var_meta.group_path, dim.name) for dim in ds_var.get_dims())
+                    resized_arr = resize_var(ds_var, var_meta, max_dims)
 
-                var_nbytes = math.prod(target_shape) * var_meta.datatype.itemsize if target_shape else var_meta.datatype.itemsize
+                if resized_arr.nbytes > max_memory_size:
+                    raise RuntimeError(f'Merging failed - MAX MEMORY REACHED: {resized_arr.nbytes}')
 
-                if var_nbytes > max_memory_size:
-                    raise RuntimeError(f'Merging failed - MAX MEMORY REACHED: {var_nbytes}')
-
-                while (memory_limit.value + var_nbytes) > max_memory_size > var_nbytes:
+                # Limit to how much memory we allocate to max memory size
+                while (memory_limit.value + resized_arr.nbytes) > max_memory_size > resized_arr.nbytes:
                     time.sleep(.5)
 
-                # Allocate shared memory and resize directly into it
-                shared_mem = SharedMemory(create=True, size=var_nbytes)
-                shared_arr = np.ndarray(target_shape, var_meta.datatype, buffer=shared_mem.buf)
-
-                if ds_var is None:
-                    fill_value = 0 if var_meta.fill_value is None else var_meta.fill_value
-                    shared_arr[:] = fill_value
-                else:
-                    resize_var(ds_var, var_meta, max_dims, out=shared_arr)
-
+                # Copy resized array to shared memory
+                shared_mem = SharedMemory(create=True, size=resized_arr.nbytes)
+                shared_arr = np.ndarray(resized_arr.shape, resized_arr.dtype, buffer=shared_mem.buf)
+                np.copyto(shared_arr, resized_arr)
                 with lock:
-                    memory_limit.value = memory_limit.value + var_nbytes
+                    memory_limit.value = memory_limit.value + resized_arr.nbytes
 
                 out_queue.put((i, var_path, shared_arr.shape, shared_mem.name))
                 shared_mem.close()
@@ -318,7 +318,7 @@ def _check_exit(processes: list):
                 raise RuntimeError(f'Merging failed - exit code: {process.exitcode}')
 
 
-def resize_var(var: nc.Variable, var_info, max_dims: dict, out: np.ndarray = None) -> np.ndarray:
+def resize_var(var: nc.Variable, var_info, max_dims: dict) -> np.ndarray:
     """
     Resizes a variable's data to the maximum dimensions found in preprocessing.
     This method will never downscale a variable and only performs bottom and
@@ -332,8 +332,6 @@ def resize_var(var: nc.Variable, var_info, max_dims: dict, out: np.ndarray = Non
         contains a group path to this variable
     max_dims : dict
         dictionary of maximum dimensions found during preprocessing
-    out : np.ndarray, optional
-        pre-allocated output array to write into (avoids extra allocation)
 
     Returns
     -------
@@ -344,39 +342,13 @@ def resize_var(var: nc.Variable, var_info, max_dims: dict, out: np.ndarray = Non
         return var[:]
 
     target_shape = tuple(resolve_dim(max_dims, var_info.group_path, dim.name) for dim in var.get_dims())
-    src_shape = var.shape
+    needs_resize = any(t != dim.size for t, dim in zip(target_shape, var.get_dims()))
 
-    needs_padding = any(t > s for t, s in zip(target_shape, src_shape))
-
-    if not needs_padding:
-        if out is not None:
-            var.set_auto_maskandscale(False)
-            _chunked_read(var, out, src_shape)
-            return out
+    if not needs_resize:
         return var[:]
 
     fill_value = 0 if var_info.fill_value is None else var_info.fill_value
-
-    if out is None:
-        out = np.full(target_shape, fill_value, dtype=var_info.datatype)
-    else:
-        out[:] = fill_value
-
-    _chunked_read(var, out, src_shape)
-    return out
-
-
-CHUNK_ROWS = 256
-
-
-def _chunked_read(var: nc.Variable, out: np.ndarray, src_shape: tuple):
-    """Read a variable into `out` in chunks along the first dimension to limit peak memory."""
-    if var.ndim == 1 or src_shape[0] <= CHUNK_ROWS:
-        slices = tuple(slice(0, s) for s in src_shape)
-        out[slices] = var[:]
-        return
-
-    for start in range(0, src_shape[0], CHUNK_ROWS):
-        end = min(start + CHUNK_ROWS, src_shape[0])
-        tail_slices = tuple(slice(0, s) for s in src_shape[1:])
-        out[(slice(start, end),) + tail_slices] = var[start:end]
+    resized = np.full(target_shape, fill_value, dtype=var.datatype)
+    slices = tuple(slice(0, dim.size) for dim in var.get_dims())
+    resized[slices] = var[:]
+    return resized
