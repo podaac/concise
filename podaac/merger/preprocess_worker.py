@@ -2,7 +2,6 @@
 from pathlib import Path
 import json
 import queue
-from copy import deepcopy
 from datetime import datetime, timezone
 from multiprocessing import Manager, Process, Queue
 
@@ -214,7 +213,7 @@ def _run_multi_core(file_list: list[Path],
             if process.exitcode != 0:
                 raise RuntimeError(f'Preprocessing failed - exit code: {process.exitcode}')
 
-        results = deepcopy(results)  # ensure GC can cleanup multiprocessing
+        results = list(results)
 
     # -- Merge final results --
     group_list = None

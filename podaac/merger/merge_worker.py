@@ -27,33 +27,25 @@ def shared_memory_size() -> int:
         return int(default_memory_size)
 
 
-def max_var_memory(file_list: list[Path], var_info: dict, max_dims) -> int:
-    """Function to get the maximum shared memory that will be used for variables
+def max_var_memory(var_info: dict, max_dims) -> int:
+    """Compute the maximum memory a single variable will occupy after resize.
 
     Parameters
     ----------
-    file_list : list
-        List of file paths to be processed
     var_info : dict
         Dictionary of variable paths and associated VariableInfo
     max_dims
     """
 
     max_var_mem = 0
-    for file in file_list:
-        with nc.Dataset(file, 'r') as origin_dataset:
-
-            for var_path, var_meta in var_info.items():
-                ds_group, var_name = resolve_group(origin_dataset, var_path)
-                ds_var = ds_group.variables.get(var_name)
-
-                if ds_var is None:
-                    target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
-                    var_size = math.prod(target_shape) * var_meta.datatype.itemsize
-                    max_var_mem = max(var_size, max_var_mem)
-                else:
-                    var_size = math.prod(ds_var.shape) * var_meta.datatype.itemsize
-                    max_var_mem = max(var_size, max_var_mem)
+    for var_meta in var_info.values():
+        if not var_meta.dim_order:
+            continue
+        target_shape = tuple(
+            resolve_dim(max_dims, var_meta.group_path, dim) for dim in var_meta.dim_order
+        )
+        var_size = math.prod(target_shape) * var_meta.datatype.itemsize
+        max_var_mem = max(var_size, max_var_mem)
 
     return max_var_mem
 
@@ -90,7 +82,7 @@ def run_merge(merged_dataset: nc.Dataset,
         # so spinning up more than 2 processes for read/write won't scale the
         # optimization
 
-        max_var_mem = max_var_memory(file_list, var_info, max_dims)
+        max_var_mem = max_var_memory(var_info, max_dims)
         max_memory_size = round(shared_memory_size() * .95)
 
         if max_var_mem < max_memory_size:
@@ -273,28 +265,41 @@ def _run_worker(in_queue, out_queue, max_dims, var_info, memory_limit, lock):
                 ds_group, var_name = resolve_group(origin_dataset, var_path)
                 ds_var = ds_group.variables.get(var_name)
 
-                if ds_var is None:
-                    fill_value = var_meta.fill_value
-                    target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
-                    resized_arr = np.full(target_shape, fill_value)
-                else:
-                    resized_arr = resize_var(ds_var, var_meta, max_dims)
+                target_shape = tuple(
+                    resolve_dim(max_dims, var_meta.group_path, dim) for dim in var_meta.dim_order
+                ) if var_meta.dim_order else ()
+                nbytes = max(1, math.prod(target_shape) * var_meta.datatype.itemsize)
 
-                if resized_arr.nbytes > max_memory_size:
-                    raise RuntimeError(f'Merging failed - MAX MEMORY REACHED: {resized_arr.nbytes}')
+                if nbytes > max_memory_size:
+                    raise RuntimeError(f'Merging failed - MAX MEMORY REACHED: {nbytes}')
 
-                # Limit to how much memory we allocate to max memory size
-                while (memory_limit.value + resized_arr.nbytes) > max_memory_size > resized_arr.nbytes:
+                while (memory_limit.value + nbytes) > max_memory_size > nbytes:
                     time.sleep(.5)
 
-                # Copy resized array to shared memory
-                shared_mem = SharedMemory(create=True, size=resized_arr.nbytes)
-                shared_arr = np.ndarray(resized_arr.shape, resized_arr.dtype, buffer=shared_mem.buf)
-                np.copyto(shared_arr, resized_arr)
-                with lock:
-                    memory_limit.value = memory_limit.value + resized_arr.nbytes
+                shared_mem = SharedMemory(create=True, size=nbytes)
+                shared_arr = np.ndarray(target_shape, var_meta.datatype, buffer=shared_mem.buf)
 
-                out_queue.put((i, var_path, shared_arr.shape, shared_mem.name))
+                if ds_var is None:
+                    fill_value = var_meta.fill_value if var_meta.fill_value is not None else 0
+                    shared_arr[()] = fill_value
+                elif ds_var.ndim == 0:
+                    shared_arr[()] = ds_var[:]
+                else:
+                    needs_resize = any(
+                        t != dim.size for t, dim in zip(target_shape, ds_var.get_dims())
+                    )
+                    if not needs_resize:
+                        shared_arr[:] = ds_var[:]
+                    else:
+                        fill_value = 0 if var_meta.fill_value is None else var_meta.fill_value
+                        shared_arr[()] = fill_value
+                        slices = tuple(slice(0, dim.size) for dim in ds_var.get_dims())
+                        shared_arr[slices] = ds_var[:]
+
+                with lock:
+                    memory_limit.value = memory_limit.value + nbytes
+
+                out_queue.put((i, var_path, target_shape, shared_mem.name))
                 shared_mem.close()
 
 
