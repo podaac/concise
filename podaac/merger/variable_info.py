@@ -1,5 +1,26 @@
 """Wrapper used to manage variable metadata"""
 import numpy as np
+import netCDF4 as nc
+
+
+class VLTypeInfo:
+    """Picklable representation of a netCDF4.VLType"""
+
+    def __init__(self, vl_type):
+        self.vl_name = vl_type.name
+        self.dtype = vl_type.dtype
+
+    @property
+    def itemsize(self):
+        return 0  # Variable-length types have no fixed element size
+
+    def __eq__(self, other):
+        if isinstance(other, VLTypeInfo):
+            return self.vl_name == other.vl_name and self.dtype == other.dtype
+        return False
+
+    def __repr__(self):
+        return f"VLTypeInfo(vl_name={self.vl_name!r}, dtype={self.dtype})"
 
 
 class VariableInfo:
@@ -24,7 +45,7 @@ class VariableInfo:
     def __init__(self, var):
         self.name = var.name
         self.dim_order = var.dimensions
-        self.datatype = var.datatype
+        self.datatype = VLTypeInfo(var.datatype) if isinstance(var.datatype, nc.VLType) else var.datatype
         self.group_path = var.group().path
 
         if hasattr(var, '_FillValue'):
