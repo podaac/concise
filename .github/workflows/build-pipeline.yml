@@ -93,7 +93,7 @@ jobs:
             -Dsonar.python.coverage.reportPaths=build/reports/coverage.xml
             -Dsonar.sources=podaac/
             -Dsonar.tests=tests/
-            -Dsonar.projectName=podaac-concise
+            -Dsonar.projectName=harmony-concise
             -Dsonar.projectVersion=${{ env.software_version }}
             -Dsonar.python.version=${{ env.PYTHON_VERSION }}
       

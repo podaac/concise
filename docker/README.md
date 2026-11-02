@@ -20,7 +20,7 @@ the `SOURCE` build argument with the package specification.
 Example:
 
 ```shell script
-docker build -f docker/Dockerfile --build-arg SOURCE="podaac-concise==1.1.0-alpha.9" .
+docker build -f docker/Dockerfile --build-arg SOURCE="harmony-concise==1.1.0-alpha.9" .
 ```
 
 ### Building from local code
@@ -39,7 +39,7 @@ and the `SOURCE` build arg should be set to the path to the wheel file.
 Example:
 
 ```shell script
-docker build -f docker/Dockerfile --build-arg SOURCE="dist/podaac-concise-1.1.0a1-py3-none-any.whl" --build-arg DIST_PATH="dist/" .
+docker build -f docker/Dockerfile --build-arg SOURCE="dist/harmony-concise-1.1.0a1-py3-none-any.whl" --build-arg DIST_PATH="dist/" .
 ```
 
 ## Running
