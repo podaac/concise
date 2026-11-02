@@ -12,7 +12,8 @@ class VLTypeInfo:
 
     @property
     def itemsize(self):
-        return 0  # Variable-length types have no fixed element size
+        """Variable-length types have no fixed element size"""
+        return 0
 
     def __eq__(self, other):
         if isinstance(other, VLTypeInfo):

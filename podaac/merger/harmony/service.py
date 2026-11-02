@@ -12,8 +12,8 @@ import sys
 from harmony_service_lib.adapter import BaseHarmonyAdapter
 from harmony_service_lib.util import bbox_to_geometry, stage
 from harmony_service_lib.exceptions import HarmonyException
-from pystac import Catalog, Item
-from pystac.item import Asset
+from pystac import Catalog, Item  # pylint: disable=no-name-in-module
+from pystac.item import Asset  # pylint: disable=import-error,no-name-in-module
 
 from podaac.merger.merge import merge_netcdf_files
 from podaac.merger.harmony.download_worker import multi_core_download
@@ -54,7 +54,7 @@ class ConciseException(HarmonyException):
         self.original_exception = original_exception
 
 
-class ConciseService(BaseHarmonyAdapter):
+class ConciseService(BaseHarmonyAdapter):  # pylint: disable=abstract-method
     """
     A harmony-service-lib wrapper around the Concise module. This wrapper does
     not support Harmony calls that do not have STAC catalogs as support for
