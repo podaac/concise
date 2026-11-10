@@ -19,8 +19,14 @@ jobs:
   # First job in the workflow installs and verifies the software
   build:
     name: Build, Test, Verify, Publish
-    # The type of runner that the job will run on
+    timeout-minutes: 60  # stops this job after 60 minutes
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+
     steps:
       
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -93,7 +99,7 @@ jobs:
             -Dsonar.python.coverage.reportPaths=build/reports/coverage.xml
             -Dsonar.sources=podaac/
             -Dsonar.tests=tests/
-            -Dsonar.projectName=podaac-concise
+            -Dsonar.projectName=harmony-concise
             -Dsonar.projectVersion=${{ env.software_version }}
             -Dsonar.python.version=${{ env.PYTHON_VERSION }}
       
@@ -217,21 +223,19 @@ jobs:
           path: dist/*
       
       - name: Publish to test.pypi.org
+        id: pypi-test-publish
         if: |
           github.ref == 'refs/heads/develop' ||
           startsWith(github.ref, 'refs/heads/release')
-        env:
-          POETRY_PYPI_TOKEN_TESTPYPI: ${{secrets.POETRY_PYPI_TOKEN_TESTPYPI}}
-        run: |
-          poetry config repositories.testpypi https://test.pypi.org/legacy/
-          poetry publish -r testpypi
-      
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
       - name: Publish to pypi.org
-        if: ${{ github.ref == 'refs/heads/main' }}
-        env:
-          POETRY_PYPI_TOKEN_PYPI: ${{secrets.POETRY_PYPI_TOKEN_PYPI}}
-        run: |
-          poetry publish
+        if: |
+          github.ref == 'refs/heads/main'
+        id: pypi-publish
+        uses: pypa/gh-action-pypi-publish@release/v1
       
       - name: Log in to the Container registry
         if: ${{ !startsWith(github.ref, 'refs/heads/feature') }}

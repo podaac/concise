@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 ### Removed
 ### Fixed
+- [issue #169] (https://github.com/podaac/concise/issues/169: Fixed crash when merging granules that contain variable-length (VLType) variables such as variable-length strings.
 
 
 ## [0.11.0]

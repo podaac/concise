@@ -12,6 +12,7 @@ import netCDF4 as nc
 import numpy as np
 
 from podaac.merger.path_utils import resolve_dim, resolve_group
+from podaac.merger.variable_info import VLTypeInfo
 
 
 def shared_memory_size() -> int:
@@ -44,6 +45,9 @@ def max_var_memory(file_list: list[Path], var_info: dict, max_dims) -> int:
         with nc.Dataset(file, 'r') as origin_dataset:
 
             for var_path, var_meta in var_info.items():
+                if isinstance(var_meta.datatype, VLTypeInfo):
+                    continue  # VLType vars are variable-length; skip memory estimation
+
                 ds_group, var_name = resolve_group(origin_dataset, var_path)
                 ds_var = ds_group.variables.get(var_name)
 
@@ -132,6 +136,12 @@ def _run_single_core(merged_dataset: nc.Dataset,
 
                 merged_var = merged_group[0].variables[var_name]
 
+                if isinstance(var_meta.datatype, VLTypeInfo):
+                    # VLType (e.g. variable-length strings): write directly, no resize
+                    if ds_var is not None:
+                        merged_var[i] = ds_var[:]
+                    continue
+
                 if ds_var is None:
                     fill_value = var_meta.fill_value
                     target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
@@ -172,7 +182,9 @@ def _run_multi_core(merged_dataset: nc.Dataset,  # pylint: disable=too-many-loca
     """
 
     logger.info("Running multicore ......")
-    total_variables = len(file_list) * len(var_info)
+    vl_var_info = {k: v for k, v in var_info.items() if isinstance(v.datatype, VLTypeInfo)}
+    regular_var_info = {k: v for k, v in var_info.items() if not isinstance(v.datatype, VLTypeInfo)}
+    total_variables = len(file_list) * len(regular_var_info)
     logger.info(f"total variables {total_variables}")
 
     # Ensure SharedMemory doesn't get cleaned up before being processed
@@ -192,7 +204,7 @@ def _run_multi_core(merged_dataset: nc.Dataset,  # pylint: disable=too-many-loca
 
         logger.info("creating read processes")
         for _ in range(process_count - 1):
-            process = context.Process(target=_run_worker, args=(in_queue, out_queue, max_dims, var_info, memory_limit, lock))
+            process = context.Process(target=_run_worker, args=(in_queue, out_queue, max_dims, regular_var_info, memory_limit, lock))
             processes.append(process)
             process.start()
 
@@ -222,6 +234,19 @@ def _run_multi_core(merged_dataset: nc.Dataset,  # pylint: disable=too-many-loca
             # Ensure that child processes properly exit before manager context
             # gets GCed. Solves EOFError
             process.join()
+
+    # VLType (variable-length) variables can't use shared memory; write them directly
+    if vl_var_info:
+        for i, file in enumerate(file_list):
+            with nc.Dataset(file, 'r') as origin_dataset:
+                origin_dataset.set_auto_maskandscale(False)
+                for var_path, var_meta in vl_var_info.items():
+                    ds_group, var_name = resolve_group(origin_dataset, var_path)
+                    ds_var = ds_group.variables.get(var_name)
+                    merged_group = resolve_group(merged_dataset, var_path)
+                    merged_var = merged_group[0].variables[var_name]
+                    if ds_var is not None:
+                        merged_var[i] = ds_var[:]
 
 
 def _run_worker(in_queue, out_queue, max_dims, var_info, memory_limit, lock):
@@ -256,6 +281,9 @@ def _run_worker(in_queue, out_queue, max_dims, var_info, memory_limit, lock):
             origin_dataset.set_auto_maskandscale(False)
 
             for var_path, var_meta in var_info.items():
+
+                if isinstance(var_meta.datatype, VLTypeInfo):
+                    continue  # VLType vars can't use shared memory; handled in writer process
 
                 ds_group, var_name = resolve_group(origin_dataset, var_path)
                 ds_var = ds_group.variables.get(var_name)
