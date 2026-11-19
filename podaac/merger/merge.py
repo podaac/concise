@@ -9,6 +9,7 @@ import numpy as np
 from podaac.merger.merge_worker import run_merge
 from podaac.merger.path_utils import get_group_path, resolve_dim, resolve_group
 from podaac.merger.preprocess_worker import run_preprocess
+from podaac.merger.variable_info import VLTypeInfo
 
 
 def is_file_empty(parent_group: nc.Dataset | nc.Group) -> bool:
@@ -198,11 +199,25 @@ def init_dataset(merged_dataset: nc.Dataset,
         # Holdover from old merging code - not sure if needed, but kept for legacy
         chunk_sizes = [1] + [resolve_dim(max_dims, group[0].path, key) for key in var[1].dim_order]
 
-        group[0].createVariable(
-            varname=var[1].name,
-            datatype=var[1].datatype,
-            dimensions=dims,
-            chunksizes=chunk_sizes,
-            fill_value=var[1].fill_value,
-            zlib=True
-        )
+        datatype = var[1].datatype
+        if isinstance(datatype, VLTypeInfo):
+            # Recreate the VLType in the target group; VLType vars don't support zlib
+            target_group = group[0]
+            if datatype.vl_name not in target_group.vltypes:
+                datatype = target_group.createVLType(datatype.dtype, datatype.vl_name)
+            else:
+                datatype = target_group.vltypes[datatype.vl_name]
+            group[0].createVariable(
+                varname=var[1].name,
+                datatype=datatype,
+                dimensions=dims,
+            )
+        else:
+            group[0].createVariable(
+                varname=var[1].name,
+                datatype=datatype,
+                dimensions=dims,
+                chunksizes=chunk_sizes,
+                fill_value=var[1].fill_value,
+                zlib=True
+            )

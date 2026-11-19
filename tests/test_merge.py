@@ -210,7 +210,7 @@ class TestMerge(TestCase):
             assert 'date_time' in history_json
             assert history_json.get('program') == 'concise'
             assert history_json.get('derived_from') == [] # list of granule urls
-            assert history_json.get('version') == importlib_metadata.distribution('podaac-concise').version
+            assert history_json.get('version') == importlib_metadata.distribution('harmony-concise').version
             assert 'input_files=' in history_json.get('parameters')
             assert history_json.get('program_ref') == 'https://cmr.earthdata.nasa.gov:443/search/concepts/S2153799015-POCLOUD'
             assert history_json.get('$schema') == 'https://harmony.earthdata.nasa.gov/schemas/history/0.1.0/history-v0.1.0.json'

@@ -97,7 +97,7 @@ def construct_history(input_files: list[Path], granule_urls: str) -> dict:
         "date_time": datetime.now(tz=timezone.utc).isoformat(),
         "derived_from": granule_urls,
         "program": 'concise',
-        "version": importlib_metadata.distribution('podaac-concise').version,
+        "version": importlib_metadata.distribution('harmony-concise').version,
         "parameters": f'input_files={input_files}',
         "program_ref": "https://cmr.earthdata.nasa.gov:443/search/concepts/S2153799015-POCLOUD",
         "$schema": "https://harmony.earthdata.nasa.gov/schemas/history/0.1.0/history-v0.1.0.json"

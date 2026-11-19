@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath('../podaac/'))
 
 # -- Project information -----------------------------------------------------
 
-distribution = importlib_metadata.distribution('podaac-concise')
+distribution = importlib_metadata.distribution('harmony-concise')
 project = distribution.name
 author = distribution.metadata['Author']
 version = distribution.version
