@@ -139,11 +139,11 @@ def _run_single_core(merged_dataset: nc.Dataset,
                 if isinstance(var_meta.datatype, VLTypeInfo):
                     # VLType (e.g. variable-length strings): write directly, no resize
                     if ds_var is not None:
-                        merged_var[i] = ds_var[:]
+                        merged_var[i] = pad_vlen_var(ds_var[:], var_meta, max_dims)
                     continue
 
                 if ds_var is None:
-                    fill_value = var_meta.fill_value
+                    fill_value = default_fill_value(var_meta)
                     target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
                     merged_var[i] = np.full(target_shape, fill_value)
                     continue
@@ -246,7 +246,7 @@ def _run_multi_core(merged_dataset: nc.Dataset,  # pylint: disable=too-many-loca
                     merged_group = resolve_group(merged_dataset, var_path)
                     merged_var = merged_group[0].variables[var_name]
                     if ds_var is not None:
-                        merged_var[i] = ds_var[:]
+                        merged_var[i] = pad_vlen_var(ds_var[:], var_meta, max_dims)
 
 
 def _run_worker(in_queue, out_queue, max_dims, var_info, memory_limit, lock):
@@ -289,7 +289,7 @@ def _run_worker(in_queue, out_queue, max_dims, var_info, memory_limit, lock):
                 ds_var = ds_group.variables.get(var_name)
 
                 if ds_var is None:
-                    fill_value = var_meta.fill_value
+                    fill_value = default_fill_value(var_meta)
                     target_shape = tuple(max_dims[f'/{dim}'] for dim in var_meta.dim_order)
                     resized_arr = np.full(target_shape, fill_value)
                 else:
@@ -361,10 +361,38 @@ def resize_var(var: nc.Variable, var_info, max_dims: dict) -> np.ndarray:
     dims = [resolve_dim(max_dims, var_info.group_path, dim.name) - dim.size for dim in var.get_dims()]
     widths = [[0, dim] for dim in dims]
 
-    # Legacy merger doesn't explicitly define this behavior, but its resizer
-    # fills its resized arrays with 0s upon initialization. Sources:
-    # https://github.com/Unidata/netcdf-java/blob/87f37eb82b6f862f71e0d5767470500b27af5d1e/cdm-core/src/main/java/ucar/ma2/Array.java#L52
-    fill_value = 0 if var_info.fill_value is None else var_info.fill_value
+    # Pad with the declared fill value, or the netCDF default fill value for the
+    # dtype, so padding is never mistaken for real (e.g. zero) measurements.
+    fill_value = default_fill_value(var_info)
 
     resized = np.pad(var, widths, mode='constant', constant_values=fill_value)
     return resized
+
+
+def default_fill_value(var_info):
+    """
+    Value used to pad a variable: its declared fill value, otherwise the netCDF
+    default fill value for its dtype (which is what the merged variable uses
+    for unwritten cells, so it is masked on read).
+    """
+    if var_info.fill_value is not None:
+        return var_info.fill_value
+    return nc.default_fillvals.get(np.dtype(var_info.datatype).str[1:], 0)
+
+
+def pad_vlen_var(data: np.ndarray, var_info, max_dims: dict) -> np.ndarray:
+    """
+    Pad variable-length (e.g. string) data with empty values up to the maximum
+    dimensions. Without this, netCDF4 broadcasts a smaller array across the
+    whole slot, duplicating real values.
+    """
+    data = np.asarray(data, dtype=object)
+    if data.ndim == 0:
+        return data
+    target = tuple(resolve_dim(max_dims, var_info.group_path, dim) for dim in var_info.dim_order)
+    if data.shape == target:
+        return data
+    padded = np.empty(target, dtype=object)
+    padded[...] = ''
+    padded[tuple(slice(0, n) for n in data.shape)] = data
+    return padded

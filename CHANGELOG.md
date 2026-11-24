@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.12.0]
 
 ### Added
 ### Changed
@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 ### Fixed
 - [issue #169] (https://github.com/podaac/concise/issues/169: Fixed crash when merging granules that contain variable-length (VLType) variables such as variable-length strings.
+- [issue #174](https://github.com/podaac/concise/issues/174): Fixed merge padding: strings are padded with empty values (not duplicated) and numerics without a `_FillValue` use the netCDF default fill value (not 0).
 
 
 ## [0.11.0]
